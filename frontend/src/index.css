@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FDFBF7;
+    color: #2B2118;
+    background-image: radial-gradient(#2B2118 0.75px, transparent 0.75px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+  }
+}
+
+/* Washi Tape / Selotip */
+.washi-tape {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1.5deg);
+  width: 110px;
+  height: 26px;
+  background-color: rgba(233, 180, 76, 0.75);
+  box-shadow: 0 1px 3px rgba(43, 33, 24, 0.15);
+  z-index: 20;
+  clip-path: polygon(4% 0%, 96% 0%, 100% 100%, 0% 100%);
+  opacity: 0.9;
+}
+
+.washi-tape-red {
+  background-color: rgba(200, 75, 49, 0.7);
+  transform: translateX(-50%) rotate(2deg);
+}
+
+.washi-tape-blue {
+  background-color: rgba(29, 53, 87, 0.65);
+  transform: translateX(-50%) rotate(-2deg);
+}
+
+.washi-tape-green {
+  background-color: rgba(45, 106, 79, 0.7);
+  transform: translateX(-50%) rotate(1deg);
+}
+
+/* Cap / Stempel */
+.stamp-box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-width: 4px;
+  border-style: double;
+  padding: 8px 24px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  position: relative;
+  user-select: none;
+}
+
+.stamp-asli {
+  color: #2D6A4F;
+  border-color: #2D6A4F;
+  background-color: rgba(45, 106, 79, 0.08);
+  transform: rotate(-3deg);
+  box-shadow: inset 0 0 0 1px #2D6A4F;
+}
+
+.stamp-palsu {
+  color: #C84B31;
+  border-color: #C84B31;
+  background-color: rgba(200, 75, 49, 0.08);
+  transform: rotate(4deg);
+  box-shadow: inset 0 0 0 1px #C84B31;
+}
+
+.stamp-ragu {
+  color: #CF9B34;
+  border-color: #CF9B34;
+  background-color: rgba(233, 180, 76, 0.08);
+  transform: rotate(-2deg);
+  box-shadow: inset 0 0 0 1px #CF9B34;
+}
+
+/* Sticker Label */
+.sticker-label {
+  display: inline-block;
+  background-color: #FFFDF9;
+  border: 2px solid #2B2118;
+  box-shadow: 2px 2px 0px #2B2118;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Cut paper / Scissor line */
+.border-dashed-paper {
+  border-style: dashed;
+  border-color: #2B2118;
+  border-width: 2px;
+}
+
+/* Clipboard & Lined Memo Pad inspired by IKEA Infographic */
+.clipboard-holder {
+  position: relative;
+  background-color: #F8DA5D;
+  border: 3px solid #2B2118;
+  border-radius: 8px;
+  box-shadow: 6px 6px 0px #2B2118;
+}
+
+.clipboard-clamp {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 28px;
+  background-color: #3A3530;
+  border: 3px solid #2B2118;
+  border-radius: 6px 6px 2px 2px;
+  z-index: 30;
+  box-shadow: 0 2px 0px rgba(0,0,0,0.2);
+}
+
+.clipboard-clamp::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 14px;
+  border: 3px solid #3A3530;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+}
+
+.notebook-lined-yellow {
+  background-color: #FFF275;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    #E8D455 31px,
+    #E8D455 32px
+  );
+  line-height: 32px;
+}
+
+/* Comic Speech Bubble Tail */
+.bubble-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 28px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #2B2118;
+}
+
+.bubble-bottom::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 30px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #FFFDF9;
+  z-index: 2;
+}
+
+/* Accessible focus ring */
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 3px solid #1D3557;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

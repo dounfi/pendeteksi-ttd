@@ -1,0 +1,7 @@
+dataset,skenario,auc,eer,accuracy,FAR,FRR
+D1,model saja,0.9321,0.1533,0.8528,0.1078,0.1867
+D1,ciri klasik saja,0.8688,0.2044,0.7944,0.36,0.0511
+D1,fusi (model + ciri),0.9346,0.1456,0.8561,0.1322,0.1556
+D2,model saja,0.8999,0.1815,0.8158,0.1491,0.2193
+D2,ciri klasik saja,0.7945,0.2823,0.7023,0.1064,0.489
+D2,fusi (model + ciri),0.8977,0.1859,0.8103,0.1338,0.2456
