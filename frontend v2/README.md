@@ -1,24 +1,21 @@
-# Pixel Perfect Replica
+# SignaCheck Frontend v2
 
-Implement exactly the screenshot and nothing else
+Frontend aplikasi SignaCheck untuk verifikasi keaslian tanda tangan berbasis Siamese CNN dan visi komputer.
 
-This project was built with [Lovable](https://lovable.dev).
+## Teknologi
+- React 19
+- TanStack Start & TanStack Router
+- Vite & Tailwind CSS v4
+- GSAP & ScrollTrigger
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/b15ff960-4a4f-403b-b658-f6e5bb2d756f).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Pengembangan Lokal
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install
+bun run dev --port 8080
+```
+
+Untuk build produksi:
+```sh
+bun run build
 ```
