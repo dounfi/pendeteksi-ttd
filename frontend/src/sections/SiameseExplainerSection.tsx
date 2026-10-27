@@ -1,111 +1,109 @@
 import React from 'react';
+import { Network, GitCompare, Cpu, Binary, ArrowRight, Layers, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 export default function SiameseExplainerSection() {
   return (
-    <section className="py-16 px-4 max-w-5xl mx-auto border-t-2 border-dashed border-ink/20">
+    <section id="cara-kerja" className="py-16 md:py-24 px-4 max-w-6xl mx-auto">
       <div className="text-center mb-12">
-        <span className="sticker-label bg-bata text-paper-card -rotate-1 mb-2 text-xs">
-          CARA KERJA 02 // DETEKTIF KEMBAR
-        </span>
-        <h2 className="font-bricolage text-3xl sm:text-5xl font-black text-ink mb-3">
-          Detektif kembar yang gak pernah ngafalin orang.
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 text-xs font-mono mb-3">
+          <Network className="w-3.5 h-3.5 text-indigo-400" />
+          <span>NEURAL ARCHITECTURE</span>
+        </div>
+        <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Arsitektur Siamese Convolutional Neural Network
         </h2>
-        <p className="font-instrument text-ink-muted text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-          Gimana caranya komputer bisa ngenalin tanda tanganmu kalau dia belum pernah ngeliat kamu sama sekali saat latihan? Rahasianya: dia bukan ngafalin nama orang, tapi ngukur <b>DNA goresan</b> jadi 64 angka!
+        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          Model tidak menghafal identitas perorangan, melainkan mengekstraksi representasi laten invarian 64-dimensi dan menghitung jarak Euclidean antargoresan.
         </p>
       </div>
 
-      {/* Visual Skematik Scrapbook: Dua Kertas -> Satu Mesin -> Peta 2 Titik */}
-      <div className="bg-paper-card border-2 border-ink shadow-scrapbook p-6 sm:p-8 max-w-4xl mx-auto relative mb-8">
-        <div className="washi-tape washi-tape-blue"></div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-          {/* Sisi Kiri: 2 Kertas Masuk */}
-          <div className="space-y-4">
-            <div className="bg-paper p-3 border-2 border-ink shadow-scrapbook-sm -rotate-2">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[11px] font-mono font-bold text-ink-muted uppercase">
-                  Kertas A (Referensi)
-                </span>
-                <span className="text-xs">📜</span>
+      {/* Vector Architecture Flow Diagram */}
+      <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-slate-800 shadow-card max-w-5xl mx-auto mb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          
+          {/* Inputs Column */}
+          <div className="lg:col-span-3 space-y-4">
+            <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 relative">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
+                <span>Input Citra A</span>
+                <span className="text-emerald-400 font-bold">Ref</span>
               </div>
-              <div className="h-14 bg-paper-card border border-ink/20 flex items-center justify-center font-caveat text-xl text-ink">
-                ~ ttd asli kamu ~
+              <div className="h-16 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-center text-xs font-mono text-slate-500">
+                Tensor [128, 256, 1]
               </div>
+              <span className="text-[11px] text-slate-500 block mt-2">Tanda Tangan Referensi</span>
             </div>
 
-            <div className="bg-paper p-3 border-2 border-ink shadow-scrapbook-sm rotate-2">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[11px] font-mono font-bold text-ink-muted uppercase">
-                  Kertas B (Yang Diuji)
-                </span>
-                <span className="text-xs">🔍</span>
+            <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 relative">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
+                <span>Input Citra B</span>
+                <span className="text-cyan-400 font-bold">Query</span>
               </div>
-              <div className="h-14 bg-paper-card border border-ink/20 flex items-center justify-center font-caveat text-xl text-ink">
-                ~ ttd yang dicurigai ~
+              <div className="h-16 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-center text-xs font-mono text-slate-500">
+                Tensor [128, 256, 1]
+              </div>
+              <span className="text-[11px] text-slate-500 block mt-2">Tanda Tangan yang Diuji</span>
+            </div>
+          </div>
+
+          {/* Dual CNN Feature Extractors */}
+          <div className="lg:col-span-4 flex flex-col items-center">
+            <div className="w-full bg-slate-900/90 p-5 rounded-2xl border border-indigo-500/30 relative shadow-glow-indigo text-center">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 text-[11px] font-mono mb-2">
+                <Cpu className="w-3.5 h-3.5" />
+                <span>SHARED WEIGHTS (W)</span>
+              </div>
+              <h4 className="text-base font-bold text-white mb-2">Cabang Kembar CNN</h4>
+              <p className="text-xs text-slate-400 leading-relaxed mb-3">
+                Kedua citra diproses oleh bobot konvolusi yang persis sama:
+              </p>
+              
+              <div className="space-y-1.5 text-[11px] font-mono text-slate-300 text-left bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                  <span>Conv2D (32 filter) + ReLU + MaxPool</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  <span>Conv2D (64 filter) + BatchNorm</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+                  <span>Global Average Pooling + Dense 64-D</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Sisi Tengah: Mesin Siamese CNN */}
-          <div className="text-center bg-mustard-light p-6 border-2 border-ink shadow-scrapbook-sm relative">
-            <span className="font-mono text-xs font-bold text-ink-muted tracking-wider block mb-1 uppercase">
-              JARINGAN KEMBAR IDENTIK
-            </span>
-            <div className="font-bricolage text-2xl font-black text-ink mb-2">
-              Siamese CNN
+          {/* Latent Space Vectors & Distance */}
+          <div className="lg:col-span-5 bg-slate-900/90 p-5 rounded-2xl border border-slate-800">
+            <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 mb-3">
+              <Binary className="w-4 h-4" />
+              <span>EUCLIDEAN DISTANCE METRIC</span>
             </div>
-            <p className="font-instrument text-xs text-ink leading-relaxed mb-3">
-              Keduanya diperiksa pake 'mata' dan aturan yang persis sama. Seluruh lekukan diubah jadi <b>64 deret angka</b> koordinat.
-            </p>
-            <div className="font-mono text-[10px] text-ink bg-paper px-2.5 py-1.5 border border-ink/30 rounded inline-block shadow-inner">
-              [ 0.14, -0.72, 0.58, ... , 0.31 ]
-            </div>
-            <span className="font-caveat text-sm text-ink-muted block mt-2">
-              *sidik jari digital tanda tangan
-            </span>
-          </div>
 
-          {/* Sisi Kanan: Peta Titik & Jarak Garis */}
-          <div className="bg-paper p-5 border-2 border-ink shadow-scrapbook-sm text-center">
-            <span className="text-[11px] font-mono font-bold text-ink-muted block mb-2 uppercase">
-              Peta Jarak Koordinat
-            </span>
-            <div className="h-28 bg-paper-card border-2 border-dashed border-ink/40 relative rounded flex items-center justify-center overflow-hidden">
-              {/* Titik A */}
-              <div className="absolute left-8 top-10 flex flex-col items-center">
-                <span className="w-4 h-4 rounded-full bg-daun border-2 border-ink inline-block"></span>
-                <span className="font-mono text-[10px] text-ink font-bold mt-0.5">Titik A</span>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center mb-4">
+              <span className="text-xs font-mono text-slate-400 block mb-1">Formula Jarak Antar Vektor</span>
+              <div className="font-mono text-sm sm:text-base font-bold text-white bg-slate-900 py-2 px-3 rounded-lg border border-slate-800 inline-block">
+                d(A, B) = || f(A) - f(B) ||₂
               </div>
-
-              {/* Garis Jarak */}
-              <div className="border-b-2 border-dashed border-bata w-24 absolute top-[48px] left-12"></div>
-              <span className="font-caveat text-sm text-bata font-bold absolute top-5 left-16 bg-paper px-1.5 border border-ink/20 rounded shadow-xs">
-                jarak d
+              <span className="text-[11px] font-mono text-slate-500 block mt-2">
+                f(x) ∈ ℝ⁶⁴ (Ruang Vektor Normalisasi L2)
               </span>
-
-              {/* Titik B */}
-              <div className="absolute right-8 top-12 flex flex-col items-center">
-                <span className="w-4 h-4 rounded-full bg-kobalt border-2 border-ink inline-block"></span>
-                <span className="font-mono text-[10px] text-ink font-bold mt-0.5">Titik B</span>
-              </div>
             </div>
-            <div className="mt-3 bg-daun-light border border-daun/40 px-2 py-1 rounded">
-              <span className="font-instrument text-xs text-daun-dark font-bold block">
-                Titik deket (&lt; 0.48) = Asli!
-              </span>
-              <span className="font-instrument text-[11px] text-bata-dark font-medium block">
-                Titik jauh (&ge; 0.48) = Palsu!
-              </span>
+
+            <div className="grid grid-cols-2 gap-2 text-center text-xs">
+              <div className="bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-lg">
+                <span className="text-emerald-400 font-bold block">d &lt; 0.4811</span>
+                <span className="text-[11px] text-slate-400">Penulis yang Sama (ASLI)</span>
+              </div>
+              <div className="bg-rose-500/10 border border-rose-500/30 p-2.5 rounded-lg">
+                <span className="text-rose-400 font-bold block">d ≥ 0.4811</span>
+                <span className="text-[11px] text-slate-400">Penulis Berbeda (PALSU)</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="text-center">
-        <span className="font-caveat text-xl text-ink-muted">
-          "Bukan sulap bukan sihir, cuma ngitung jarak di atas peta angka 64 dimensi!" 📐
-        </span>
       </div>
     </section>
   );

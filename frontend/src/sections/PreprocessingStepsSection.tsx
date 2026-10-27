@@ -1,110 +1,110 @@
 import React from 'react';
+import { 
+  Binary, 
+  Image as ImageIcon, 
+  Sun, 
+  Contrast, 
+  Crop, 
+  Maximize2,
+  ArrowRight
+} from 'lucide-react';
 
 const TAHAPAN = [
   {
     nomor: "01",
-    judul: "Foto Masuk (Grayscale)",
-    penjelasan: "Foto diubah jadi hitam-putih dulu. Komputer gak peduli kertasmu warna pink atau biru, yang penting kontrasnya.",
-    badge: "Input Awal",
-    icon: "📷"
+    judul: "Grayscale Input",
+    penjelasan: "Konversi gambar RGB ke skala abu-abu 8-bit untuk mengeliminasi variasi warna tinta dan kertas.",
+    badge: "1-Kanal",
+    Icon: ImageIcon,
+    accent: "text-blue-400"
   },
   {
     nomor: "02",
-    judul: "Hapus Bayangan Gelap",
-    penjelasan: "Pencahayaan diratain. Bayangan jempol atau sudut kamar yang remang-remang langsung disapu bersih!",
-    badge: "Koreksi Cahaya",
-    icon: "💡"
+    judul: "Koreksi Iluminasi",
+    penjelasan: "Normalisasi pencahayaan lokal untuk meratakan gradien bayangan tangan dan pencahayaan latar.",
+    badge: "Detrending",
+    Icon: Sun,
+    accent: "text-amber-400"
   },
   {
     nomor: "03",
-    judul: "Pisahin Tinta (Otsu)",
-    penjelasan: "Goresan tinta dipisah tegas dari serat kertas. Gak ada abu-abu: cuma hitam (tinta) dan putih (kertas).",
-    badge: "Otsu Binarization",
-    icon: "✒️"
+    judul: "Binerisasi Otsu",
+    penjelasan: "Segmentasi adaptif otomatis untuk memisahkan piksel goresan tinta dari serat kertas secara biner (0 dan 1).",
+    badge: "Dual Threshold",
+    Icon: Contrast,
+    accent: "text-cyan-400"
   },
   {
     nomor: "04",
-    judul: "Sapu Debu & Potong Pas",
-    penjelasan: "Bintik debu scan dibuang, lalu area tanda tangan dipotong pas di tepiannya biar fokus ke goresan.",
-    badge: "Clean & Crop",
-    icon: "✂️"
+    judul: "Crop Kontur Goresan",
+    penjelasan: "Pendeteksian bounding box kontur terluar dan pembersihan noise bintik debu scan mikroskopis.",
+    badge: "Morphology",
+    Icon: Crop,
+    accent: "text-emerald-400"
   },
   {
     nomor: "05",
-    judul: "Kanvas Baku 128×256",
-    penjelasan: "Tanda tangan ditaruh pas di tengah kanvas standar 128×256 piksel tanpa merusak proporsi aslinya.",
-    badge: "Standarisasi",
-    icon: "📐"
+    judul: "Standardisasi 128×256",
+    penjelasan: "Normalisasi dimensi ke matriks tetap 128×256 piksel dengan mempertahankan aspek rasio asli (zero-padding).",
+    badge: "Input Tensor",
+    Icon: Maximize2,
+    accent: "text-indigo-400"
   }
 ];
 
 export default function PreprocessingStepsSection() {
   return (
-    <section id="cara-kerja" className="py-16 px-4 max-w-5xl mx-auto border-t-2 border-dashed border-ink/20">
+    <section id="pipeline" className="py-16 md:py-24 px-4 max-w-6xl mx-auto">
       <div className="text-center mb-12">
-        <span className="sticker-label bg-kobalt text-paper-card -rotate-1 mb-2 text-xs">
-          CARA KERJA 01 // SALON TANDA TANGAN
-        </span>
-        <h2 className="font-bricolage text-3xl sm:text-5xl font-black text-ink mb-3">
-          Cuci muka dulu! Biar komputer gak salah fokus.
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs font-mono mb-3">
+          <Binary className="w-3.5 h-3.5 text-emerald-400" />
+          <span>COMPUTER VISION PIPELINE</span>
+        </div>
+        <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Tahapan Prapemrosesan Citra
         </h2>
-        <p className="font-instrument text-ink-muted text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-          Foto dari kamera HP itu jujur sering 'kacau': ada bayangan jempol, kertas menguning, sampe debu meja. Kalau langsung dimasukin ke model, dia bakal pusing bedain mana bayangan mana tanda tangan! Makanya kita mandiin dulu lewat 5 langkah kilat:
+        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          Sebelum dievaluasi oleh neural network, citra tanda tangan mentah diproses melalui 5 tahap transformasi citra digital untuk menjamin invarian terhadap pencahayaan dan resolusi.
         </p>
       </div>
 
-      {/* Alur 5 Tahap Menu Berbaris (Gaya Kartu Menu / Resep Komik) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-10">
-        {TAHAPAN.map((t, idx) => (
-          <div
-            key={idx}
-            className={`bg-paper-card p-4 border-2 border-ink shadow-scrapbook flex flex-col justify-between relative ${
-              idx % 2 === 0 ? '-rotate-1' : 'rotate-1'
-            } hover:rotate-0 hover:-translate-y-1 transition-all`}
-          >
-            <div>
-              {/* Header Kartu */}
-              <div className="flex items-center justify-between mb-3 border-b-2 border-dashed border-ink/15 pb-2">
-                <span className="w-8 h-8 rounded-full bg-ink text-paper-card font-bricolage font-extrabold text-xs flex items-center justify-center border border-ink shadow-scrapbook-sm">
-                  {t.nomor}
+      {/* 5-Stage Vector Flow Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {TAHAPAN.map((t, idx) => {
+          const Icon = t.Icon;
+          return (
+            <div
+              key={idx}
+              className="glass-panel p-5 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between relative group"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center">
+                    <Icon className={`w-5 h-5 ${t.accent}`} />
+                  </div>
+                  <span className="font-mono text-xs font-bold text-slate-500 group-hover:text-cyan-400 transition-colors">
+                    {t.nomor}
+                  </span>
+                </div>
+
+                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 text-slate-400 border border-slate-800 mb-2">
+                  {t.badge}
                 </span>
-                <span className="text-xl">{t.icon}</span>
+
+                <h3 className="text-sm font-bold text-white mb-2">{t.judul}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                  {t.penjelasan}
+                </p>
               </div>
-              
-              <span className="text-[10px] font-mono font-bold uppercase text-bata bg-bata-light px-1.5 py-0.5 rounded border border-bata/30 inline-block mb-1.5">
-                {t.badge}
-              </span>
-              
-              <h3 className="font-bricolage text-base font-bold text-ink mb-2 leading-snug">
-                {t.judul}
-              </h3>
-              
-              <p className="font-instrument text-xs text-ink-muted leading-relaxed">
-                {t.penjelasan}
-              </p>
-            </div>
 
-            <div className="mt-4 pt-2 border-t border-dashed border-ink/15 text-right">
-              <span className="font-caveat text-sm text-ink-muted">tahap #{idx + 1}</span>
+              {idx < TAHAPAN.length - 1 && (
+                <div className="hidden lg:flex items-center justify-end text-slate-600 pt-2 border-t border-slate-800/60">
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-slate-500" />
+                </div>
+              )}
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Box Catatan Penting dengan Washi Tape */}
-      <div className="bg-mustard-light border-2 border-ink p-5 rounded-sm max-w-2xl mx-auto shadow-scrapbook relative">
-        <div className="washi-tape washi-tape-yellow"></div>
-        <div className="flex items-start gap-3">
-          <span className="text-2xl mt-0.5">💡</span>
-          <div>
-            <h4 className="font-bricolage text-base font-bold text-ink mb-1">
-              Kenapa tahap ini penyelamat hidup?
-            </h4>
-            <p className="font-instrument text-sm text-ink leading-relaxed">
-              Di pengujian kami, foto kamera HP yang <b>tanpa olah citra</b> akurasinya anjlok ke <b>50.0%</b> (alias nebak koin doang!). Tapi begitu dicuci muka lewat alur ini, akurasinya langsung melonjak jadi <b>81.7%</b>. Terbukti banget pengolahan citra itu pahlawan di balik layar!
-            </p>
-          </div>
-        </div>
+          );
+        })}
       </div>
     </section>
   );

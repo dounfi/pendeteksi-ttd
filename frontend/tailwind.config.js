@@ -7,54 +7,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        paper: {
-          DEFAULT: '#FDFBF7',
-          dark: '#F3ECE3',
-          card: '#FFFDF9',
-        },
-        ink: {
-          DEFAULT: '#2B2118',
-          muted: '#68594D',
-          light: '#9E8E81',
-          border: '#2B2118',
-        },
-        bata: {
-          DEFAULT: '#C84B31',
-          dark: '#A73822',
-          light: '#F8E8E5',
-        },
-        mustard: {
-          DEFAULT: '#E9B44C',
-          dark: '#CF9B34',
-          light: '#FCF5E8',
-        },
-        daun: {
-          DEFAULT: '#2D6A4F',
-          dark: '#21513C',
-          light: '#E6EFE9',
-        },
-        kobalt: {
-          DEFAULT: '#1D3557',
-          dark: '#14253E',
-          light: '#E6ECF3',
-        },
-        washi: {
-          yellow: 'rgba(233, 180, 76, 0.45)',
-          red: 'rgba(200, 75, 49, 0.35)',
-          blue: 'rgba(29, 53, 87, 0.35)',
-          green: 'rgba(45, 106, 79, 0.35)',
+        mat: '#2B58B5',
+        'label-blue': '#1F4FBF',
+        ink: '#14213D',
+        paper: '#F7F2E6',
+        'paper-white': '#FFFEFA',
+        manila: '#E2C07C',
+        'sticky-yellow': '#FFE27A',
+        'sticky-pink': '#F7B5CB',
+        'sticky-blue': '#BFE3F5',
+        verdict: {
+          asli: '#1F7A4F',
+          'belum-pasti': '#E0A21B',
+          palsu: '#B93A2E',
         }
       },
       fontFamily: {
-        bricolage: ['"Bricolage Grotesque"', 'sans-serif'],
-        instrument: ['"Instrument Sans"', 'sans-serif'],
+        heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+        body: ['"Plus Jakarta Sans"', 'sans-serif'],
         caveat: ['"Caveat"', 'cursive'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       boxShadow: {
-        'scrapbook-sm': '2px 2px 0px #2B2118',
-        'scrapbook': '4px 4px 0px #2B2118',
-        'scrapbook-lg': '7px 7px 0px #2B2118',
-        'scrapbook-xl': '10px 10px 0px #2B2118',
+        'paper-contact': '0 4px 10px rgba(20, 33, 61, 0.16)',
+        'paper-deep': '0 10px 24px rgba(20, 33, 61, 0.22)',
+        'btn-shadow': '0 4px 0 #123785',
+        'btn-active': '0 1px 0 #123785',
       }
     },
   },

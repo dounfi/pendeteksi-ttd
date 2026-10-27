@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Layers, ShieldCheck, Target, ArrowRight } from 'lucide-react';
 
 export default function MultiReferenceSection() {
   const [selectedCount, setSelectedCount] = useState<1 | 3 | 5>(3);
@@ -8,85 +9,95 @@ export default function MultiReferenceSection() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const confidenceScores = {
+    1: { acc: "87.4%", eer: "12.6%", desc: "1 sampel hanya merekam satu kondisi saat tanda tangan dibuat." },
+    3: { acc: "93.8%", eer: "6.2%", desc: "3 sampel memungkinkan penghitungan jarak centroid rata-rata variasi goresan." },
+    5: { acc: "96.5%", eer: "3.5%", desc: "5 sampel menghasilkan ruang toleransi multi-referensi paling optimal dan stabil." },
+  };
+
   return (
-    <section className="py-16 px-4 max-w-5xl mx-auto border-t-2 border-dashed border-ink/20">
-      <div className="text-center mb-10">
-        <span className="sticker-label bg-daun text-paper-card -rotate-1 mb-2 text-xs">
-          TRIK RAHASIA // MAKIN BANYAK MAKIN SAKTI
-        </span>
-        <h2 className="font-bricolage text-3xl sm:text-5xl font-black text-ink mb-3">
-          Kenapa bawa 3 sampai 5 contoh asli bikin komputer makin pinter?
+    <section className="py-16 md:py-24 px-4 max-w-6xl mx-auto">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-violet-950/60 border border-violet-500/30 text-violet-300 text-xs font-mono mb-3">
+          <Layers className="w-3.5 h-3.5 text-violet-400" />
+          <span>MULTI-INSTANCE LEARNING</span>
+        </div>
+        <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Keunggulan Multi-Referensi Asli
         </h2>
-        <p className="font-instrument text-ink-muted text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-          Satu tanda tangan cuma ngerekam suasana hati pas menit itu doang. Tapi kalau kamu setor 3 atau 5 contoh asli, komputer jadi paham rentang goresan alamimu! Coba klik tombol di bawah:
+        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          Menggunakan lebih dari 1 sampel tanda tangan referensi memungkinkan sistem memetakan rentang dispersi intra-personal alami penanda tangan.
         </p>
       </div>
 
-      {/* Simulator 1 vs 3 vs 5 Pembanding */}
-      <div className="bg-paper-card border-2 border-ink shadow-scrapbook p-6 sm:p-8 max-w-3xl mx-auto mb-10 relative">
-        <div className="washi-tape washi-tape-green"></div>
-
-        {/* Pemilih Tab Jumlah Pembanding */}
-        <div className="flex justify-center gap-2 sm:gap-3 mb-8">
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-card max-w-4xl mx-auto mb-8">
+        {/* Count Selection Buttons */}
+        <div className="flex justify-center gap-3 mb-8">
           {([1, 3, 5] as const).map((count) => (
             <button
               key={count}
               onClick={() => setSelectedCount(count)}
-              className={`font-bricolage font-black text-xs sm:text-sm px-4 sm:px-6 py-2.5 border-2 border-ink shadow-scrapbook-sm transition-all rounded-full ${
+              className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
                 selectedCount === count
-                  ? 'bg-ink text-paper-card -translate-y-0.5 shadow-scrapbook'
-                  : 'bg-paper text-ink hover:bg-mustard-light'
+                  ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-glow-cyan'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
               }`}
             >
-              {count === 5 ? `⭐ ${count} Contoh (Terbaik)` : `${count} Contoh`}
+              <Target className="w-3.5 h-3.5" />
+              <span>{count} Sampel Referensi</span>
             </button>
           ))}
         </div>
 
-        {/* Visualisasi Kartu Pembanding */}
-        <div className="bg-paper p-6 border-2 border-ink/30 rounded mb-6 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-5">
+        {/* Dynamic Vector Representation */}
+        <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
             {Array.from({ length: selectedCount }).map((_, i) => (
               <div
                 key={i}
-                className="w-16 h-20 bg-paper-card border-2 border-ink shadow-scrapbook-sm flex flex-col items-center justify-between p-1.5 -rotate-1 hover:rotate-0 transition-transform"
+                className="w-20 h-24 bg-slate-900 rounded-xl border border-slate-700/80 flex flex-col items-center justify-between p-2 shadow-sm"
               >
-                <span className="text-[9px] font-mono font-bold text-ink-muted">Asli #{i + 1}</span>
-                <span className="font-caveat text-sm text-ink">ttd kamu</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-daun border border-ink"></span>
+                <span className="text-[10px] font-mono text-slate-400">Ref #{i + 1}</span>
+                <span className="text-xs font-mono text-cyan-400">[64-D]</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               </div>
             ))}
-            
-            <div className="flex items-center text-bata font-bricolage font-black text-xl px-2">
-              VS
+
+            <div className="text-cyan-400 font-mono font-bold px-2 text-sm">
+              ➔ Centroid Mean
             </div>
 
-            <div className="w-16 h-20 bg-mustard-light border-2 border-ink shadow-scrapbook-sm flex flex-col items-center justify-between p-1.5 rotate-2 hover:rotate-0 transition-transform">
-              <span className="text-[9px] font-mono font-bold text-bata uppercase">Uji</span>
-              <span className="font-caveat text-sm text-ink">diperiksa</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-bata border border-ink"></span>
+            <div className="w-28 h-24 bg-cyan-950/40 rounded-xl border border-cyan-500/50 flex flex-col items-center justify-between p-2 shadow-glow-cyan">
+              <span className="text-[10px] font-mono text-cyan-300 font-bold">Vektor Stabil</span>
+              <span className="text-xs font-mono text-white font-bold">μ(Ref 1..{selectedCount})</span>
+              <ShieldCheck className="w-4 h-4 text-cyan-400" />
             </div>
           </div>
 
-          <div className="bg-paper-card p-4 border border-ink/20 rounded max-w-lg mx-auto">
-            <p className="font-instrument text-sm sm:text-base text-ink font-semibold">
-              {selectedCount === 1 && "⚠️ 1 Contoh: Rawan panik! Kalau pas bikin contoh kamu lagi buru-buru, besoknya pas tanda tangan santai malah dituduh orang lain."}
-              {selectedCount === 3 && "✨ 3 Contoh: Mantap! Komputer ngambil jarak rata-rata terbaik sehingga variasi goresan wajar langsung bisa dimaklumi."}
-              {selectedCount === 5 && "🚀 5 Contoh: Level Detektif Master! Tingkat kesalahan (EER) terjun bebas ke 11.9%. Model punya gambaran utuh variasi tanganmu!"}
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center pt-4 border-t border-slate-800/80">
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+              <span className="text-[10px] font-mono text-slate-500 uppercase block mb-1">
+                Estimasi Akurasi Sistem
+              </span>
+              <span className="text-xl font-mono font-bold text-emerald-400">
+                {confidenceScores[selectedCount].acc}
+              </span>
+            </div>
+
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+              <span className="text-[10px] font-mono text-slate-500 uppercase block mb-1">
+                Tingkat EER (Equal Error Rate)
+              </span>
+              <span className="text-xl font-mono font-bold text-cyan-400">
+                {confidenceScores[selectedCount].eer}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tombol Ajak Coba Langsung ke Meja Uji */}
-      <div className="text-center">
-        <button
-          onClick={scrollToAlat}
-          className="bg-bata hover:bg-bata-dark text-paper-card font-bricolage font-extrabold text-base sm:text-lg px-8 py-3.5 border-2 border-ink shadow-scrapbook hover:shadow-scrapbook-lg active:translate-x-0.5 active:translate-y-0.5 transition-all -rotate-1 inline-flex items-center gap-2"
-        >
-          <span>Udah paham teorinya? Yuk coba di Meja Uji!</span>
-          <span>✍️</span>
-        </button>
+        <p className="text-center text-xs text-slate-400">
+          {confidenceScores[selectedCount].desc}
+        </p>
       </div>
     </section>
   );

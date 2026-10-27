@@ -1,87 +1,84 @@
 import React from 'react';
+import { ShieldAlert, UserX, Crosshair, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export default function ForgeryTypesSection() {
   return (
-    <section id="edukasi" className="py-16 px-4 max-w-4xl mx-auto border-t-2 border-dashed border-ink/20">
-      <div className="text-center mb-10">
-        <span className="sticker-label bg-mustard text-ink -rotate-1 mb-2 text-xs">
-          CERITA 01 // DI BALIK KERTAS
-        </span>
-        <h2 className="font-bricolage text-3xl sm:text-4xl font-extrabold text-ink mb-3">
-          Kenapa tanda tangan bisa dipalsukan?
+    <section className="py-16 md:py-24 px-4 max-w-6xl mx-auto">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-950/60 border border-rose-500/30 text-rose-300 text-xs font-mono mb-3">
+          <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+          <span>TAXONOMY OF FORGERIES</span>
+        </div>
+        <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Klasifikasi Tipe Pemalsuan Tanda Tangan
         </h2>
-        <p className="font-instrument text-ink-muted text-base max-w-lg mx-auto">
-          Tangan manusia itu unik, tapi niat usil orang juga banyak ragamnya. Di dunia nyata, biasanya ada dua kasta pemalsu yang sering kita temuin:
+        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          Dalam bidang verifikasi biometrik offline, ancaman pemalsuan dibagi menjadi dua kategori utama dengan tingkat kesulitan deteksi yang berbeda.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Kartu 1: Tiruan Asal-Asalan */}
-        <div className="bg-paper-card p-6 border-2 border-ink shadow-scrapbook relative -rotate-1 hover:rotate-0 transition-transform">
-          <div className="washi-tape washi-tape-yellow"></div>
-          
-          <div className="flex items-center gap-3 mb-3">
-            <span className="w-9 h-9 rounded-full bg-kobalt text-paper-card font-bricolage font-bold flex items-center justify-center text-sm border-2 border-ink shadow-scrapbook-sm">
-              01
-            </span>
-            <div>
-              <span className="text-[10px] font-mono font-bold uppercase text-ink-muted block">Kasta Santai</span>
-              <h3 className="font-bricolage text-lg font-bold text-ink">
-                Tiruan Asal-Asalan
-              </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
+        {/* Card 1: Random / Simple Forgery */}
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 relative hover:border-slate-700 transition-all flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <UserX className="w-6 h-6" />
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-xs font-mono">
+                Tipe 01
+              </span>
             </div>
+
+            <h3 className="text-xl font-bold text-white mb-2">
+              Pemalsuan Acak (Random Forgery)
+            </h3>
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+              Pelaku menandatangani dokumen menggunakan gaya atau namanya sendiri tanpa pernah melihat bentuk tanda tangan asli korban.
+            </p>
           </div>
 
-          <p className="font-instrument text-ink text-sm leading-relaxed mb-4">
-            Temen kamu nemu presensi kuliahmu kosong, terus dia gores ngasal pake gayanya sendiri tanpa pernah tau gimana bentuk tanda tangan aslimu.
-          </p>
-
-          <div className="bg-daun-light border-2 border-dashed border-daun/50 p-3 rounded-sm text-left">
-            <span className="font-instrument font-bold text-daun text-xs block mb-0.5">
-              Tingkat kesulitan komputer:
-            </span>
-            <span className="font-instrument text-xs text-daun-dark leading-relaxed">
-              Gampang banget! Sekali lirik bentuk dasarnya aja udah beda alam semesta. Komputer langsung nolak dalam sepersekian detik.
-            </span>
+          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-1">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Respon Model Siamese CNN: Sangat Mudah</span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Topologi kurva dan rasio aspek berbeda drastis. Jarak embedding umumnya bernilai &gt; 0.70 sehingga langsung ditolak dengan kepastian tinggi.
+            </p>
           </div>
         </div>
 
-        {/* Kartu 2: Tiruan Niat Banget */}
-        <div className="bg-paper-card p-6 border-2 border-ink shadow-scrapbook relative rotate-1 hover:rotate-0 transition-transform">
-          <div className="washi-tape washi-tape-red"></div>
-
-          <div className="flex items-center gap-3 mb-3">
-            <span className="w-9 h-9 rounded-full bg-bata text-paper-card font-bricolage font-bold flex items-center justify-center text-sm border-2 border-ink shadow-scrapbook-sm">
-              02
-            </span>
-            <div>
-              <span className="text-[10px] font-mono font-bold uppercase text-ink-muted block">Kasta Niat</span>
-              <h3 className="font-bricolage text-lg font-bold text-ink">
-                Tiruan Terampil (Niat Banget!)
-              </h3>
+        {/* Card 2: Skilled Forgery */}
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 relative hover:border-slate-700 transition-all flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                <Crosshair className="w-6 h-6" />
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-xs font-mono">
+                Tipe 02
+              </span>
             </div>
+
+            <h3 className="text-xl font-bold text-white mb-2">
+              Pemalsuan Terampil (Skilled Forgery)
+            </h3>
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+              Pelaku memiliki sampel asli dan berlatih meniru bentuk lekukan, kemiringan, dan proporsinya sedekat mungkin.
+            </p>
           </div>
 
-          <p className="font-instrument text-ink text-sm leading-relaxed mb-4">
-            Pelaku naruh tanda tanganmu di bawah lampu meja, terus latihan berkali-kali di kertas buram buat niru lengkungan dan ekor garisnya semirip mungkin.
-          </p>
-
-          <div className="bg-bata-light border-2 border-dashed border-bata/50 p-3 rounded-sm text-left">
-            <span className="font-instrument font-bold text-bata text-xs block mb-0.5">
-              Tingkat kesulitan komputer:
-            </span>
-            <span className="font-instrument text-xs text-bata-dark leading-relaxed">
-              Nah ini lawan seimbang! Mata manusia sering terkecoh. Komputer harus ngecek tekanan garis mikro, kerapatan piksel, dan rasio lekukan.
-            </span>
+          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 mb-1">
+              <AlertOctagon className="w-4 h-4" />
+              <span>Respon Model: Analisis Forensik Tambahan</span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Meskipun bentuk luarnya mirip, fitur mikroskopis seperti kelambanan goresan (hesitation), tremor garis, dan distribusi ketebalan tinta membongkar tiruan ini.
+            </p>
           </div>
         </div>
-      </div>
-
-      {/* Satu kalimat penutup */}
-      <div className="text-center max-w-md mx-auto bg-mustard-light border-2 border-ink p-3.5 shadow-scrapbook-sm -rotate-0.5">
-        <p className="font-bricolage text-ink font-bold text-sm sm:text-base">
-          Yang nomor dua ini nih yang bikin detektif forensik pusing! 🕵️‍♂️
-        </p>
       </div>
     </section>
   );

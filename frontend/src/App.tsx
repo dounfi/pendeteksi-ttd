@@ -1,72 +1,80 @@
-import React, { useEffect } from 'react';
-import gsap from 'gsap';
+import { lazy, Suspense, useEffect, useRef } from 'react';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-import HeroSection from './sections/HeroSection';
-import ForgeryTypesSection from './sections/ForgeryTypesSection';
-import HumanVariationSection from './sections/HumanVariationSection';
-import PreprocessingStepsSection from './sections/PreprocessingStepsSection';
-import SiameseExplainerSection from './sections/SiameseExplainerSection';
-import ThresholdPlaygroundSection from './sections/ThresholdPlaygroundSection';
-import MultiReferenceSection from './sections/MultiReferenceSection';
-import InspectionToolSection from './sections/InspectionToolSection';
-import LimitsBenchmarkSection from './sections/LimitsBenchmarkSection';
-import FloatingCobaButton from './sections/FloatingCobaButton';
+import { Header } from './components/layout/Header';
+import { Footer } from './components/layout/Footer';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function App() {
+const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })));
+const PeriksaPage = lazy(() => import('./pages/PeriksaPage').then((module) => ({ default: module.PeriksaPage })));
+const PerformaPage = lazy(() => import('./pages/PerformaPage').then((module) => ({ default: module.PerformaPage })));
+const TentangPage = lazy(() => import('./pages/TentangPage').then((module) => ({ default: module.TentangPage })));
+
+function PageMotion() {
+  const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
-    // Hormati prefers-reduced-motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    // Animasi muncul perlahan pada bagian edukasi
-    const sections = document.querySelectorAll('section');
-    sections.forEach((sec) => {
-      gsap.fromTo(
-        sec,
-        { opacity: 0.88, y: 16 },
-        {
-          opacity: 1,
+    const root = mainRef.current;
+    if (!root) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let observer: MutationObserver | null = null;
+    let tween: gsap.core.Tween | null = null;
+    const animatePage = () => {
+      const items = root.querySelectorAll<HTMLElement>('[data-desk-enter]');
+      if (!items.length) return false;
+      if (reducedMotion) {
+        gsap.set(items, { clearProps: 'all' });
+      } else {
+        tween = gsap.fromTo(items, { y: -24, rotation: -1.5, autoAlpha: 0 }, {
           y: 0,
-          duration: 0.6,
+          rotation: 0,
+          autoAlpha: 1,
+          duration: 0.55,
+          stagger: 0.07,
           ease: 'power2.out',
-          scrollTrigger: {
-            trigger: sec,
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-          },
-        }
-      );
-    });
-
-    return () => {
-      ScrollTrigger.getAll().forEach(t => t.kill());
+          clearProps: 'transform,opacity,visibility',
+        });
+      }
+      return true;
     };
-  }, []);
+    if (!animatePage()) {
+      observer = new MutationObserver(() => {
+        if (animatePage()) observer?.disconnect();
+      });
+      observer.observe(root, { childList: true, subtree: true });
+    }
+    return () => {
+      observer?.disconnect();
+      tween?.kill();
+    };
+  }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-paper text-ink font-instrument">
-      {/* Tombol Melayang di Pojok */}
-      <FloatingCobaButton />
+    <main ref={mainRef} className="flex-1">
+      <Suspense fallback={<div className="page-loading" role="status">Membuka halaman...</div>}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/periksa" element={<PeriksaPage />} />
+          <Route path="/performa" element={<PerformaPage />} />
+          <Route path="/tentang" element={<TentangPage />} />
+          <Route path="*" element={<HomePage />} />
+        </Routes>
+      </Suspense>
+    </main>
+  );
+}
 
-      <main>
-        {/* BAGIAN A: LANDING EDUKASI (Scrollytelling) */}
-        <HeroSection />
-        <ForgeryTypesSection />
-        <HumanVariationSection />
-        <PreprocessingStepsSection />
-        <SiameseExplainerSection />
-        <ThresholdPlaygroundSection />
-        <MultiReferenceSection />
-
-        {/* BAGIAN B: ALAT PERIKSA TANDA TANGAN */}
-        <InspectionToolSection />
-
-        {/* BAGIAN C: PERFORMA DAN BATAS MODEL (JUJUR) */}
-        <LimitsBenchmarkSection />
-      </main>
-    </div>
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="site-shell min-h-screen flex flex-col">
+        <Header />
+        <PageMotion />
+        <Footer />
+      </div>
+    </BrowserRouter>
   );
 }

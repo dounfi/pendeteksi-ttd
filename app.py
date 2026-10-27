@@ -127,7 +127,7 @@ st.markdown('<div class="sub-title">Verifikasi Keaslian Tanda Tangan Berbasis <b
 st.sidebar.header("⚙️ Pengaturan & Input")
 mode_pilihan = st.sidebar.radio(
     "Sumber Citra Tanda Tangan:",
-    ("Gunakan Contoh Sampel", "Unggah Gambar Sendiri")
+    ("Gunakan Contoh Sampel", "Unggah Berkas Gambar", "Ambil Foto via Kamera")
 )
 
 THRESHOLD = CONFIG.get("threshold", 0.4811)
@@ -161,9 +161,14 @@ if mode_pilihan == "Gunakan Contoh Sampel":
         label_ekspektasi = "PALSU"
 
     st.sidebar.info(f"💡 Ekspektasi pasangan ini: **{label_ekspektasi}**")
-else:
+elif mode_pilihan == "Unggah Berkas Gambar":
     file_ref = st.sidebar.file_uploader("1. Tanda Tangan Pembanding (Asli/Referensi)", type=["png", "jpg", "jpeg"])
     file_qry = st.sidebar.file_uploader("2. Tanda Tangan yang Diperiksa (Uji)", type=["png", "jpg", "jpeg"])
+    ref_img_path = file_ref
+    qry_img_path = file_qry
+else:
+    file_ref = st.sidebar.camera_input("1. Jepret Foto Tanda Tangan Pembanding")
+    file_qry = st.sidebar.camera_input("2. Jepret Foto Tanda Tangan yang Diperiksa")
     ref_img_path = file_ref
     qry_img_path = file_qry
 
