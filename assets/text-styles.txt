@@ -1,0 +1,205 @@
+010211; // 
+0C7AB5; // 
+1E65AB; // 
+1F8EBC; // 
+1F8EBC; // 
+3FA1C1; // 
+3FA1C1; // 
+D0DCE7; // 
+D0DCE7; // 
+D0DCE7; // 
+FFFFFF; // 
+
+
+// SignaCheck
+text-sky-700
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Beranda
+text-sky-700
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Tentang
+text-sky-700
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Cara Pakai
+text-sky-700
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Cek Tanda Tangan
+text-white
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Coba SignaCheck
+text-slate-300
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Verifikasi Tanda Tangan, Lebih Cermat dengan ML.
+text-gray-950
+text-7xl
+font-bold
+font-['Work_Sans']
+---
+// Tentang SignaCheck
+text-gray-950
+text-5xl
+font-bold
+font-['Work_Sans']
+---
+// SignaCheck membantu menganalisis kemiripan tanda tangan melalui teknologi deep learning dan karakteristik citra forensik untuk mendukung proses verifikasi secara lebih informatif.
+text-gray-950
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Kenali Polanya. Periksa Keasliannya
+text-gray-950
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Analisis Tanda Tangan Berbasis Machine Learning
+text-gray-950
+text-4xl
+font-bold
+font-['Work_Sans']
+---
+// SignaCheck adalah sistem verifikasi tanda tangan berbasis citra yang memanfaatkan Siamese Convolutional Neural Network (CNN) untuk menganalisis kemiripan pola tanda tangan.<br/><br/>Sistem ini menggabungkan analisis kemiripan berbasis deep learning dengan karakteristik morfologi citra untuk memberikan informasi pendukung dalam proses pemeriksaan tanda tangan. Dilengkapi dengan analisis ketahanan terhadap perubahan citra dan mekanisme identifikasi hasil yang meragukan, SignaCheck dirancang untuk menghasilkan evaluasi yang lebih informatif dan terukur.
+text-gray-950
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Keunggulan SignaCheck
+text-gray-950
+text-4xl
+font-bold
+font-['Work_Sans']
+---
+// Analisis Cerdas dengan ML
+text-gray-950
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Menggabungkan Siamese CNN dengan delapan karakteristik morfologi citra tanda tangan. Pendekatan ini tidak hanya membandingkan pola tanda tangan, tetapi juga menyediakan informasi karakteristik visual yang mendukung analisis hasil verifikasi.
+text-gray-950
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Tidak Asal Menentukan Hasil
+text-gray-950
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Melalui mekanisme Uji Goyang (Shake Invariance Test), sistem mengevaluasi kestabilan hasil ketika citra tanda tangan mengalami perubahan kecil. Jika hasil berada dalam kondisi yang meragukan, sistem dapat memberikan status Ragu-Ragu untuk mendukung pemeriksaan lebih lanjut.
+text-gray-950
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Adaptif terhadap Kualitas Gambar
+text-gray-950
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Dilengkapi dengan tahapan prapemrosesan citra untuk membantu menangani variasi pencahayaan, bayangan, dan posisi tanda tangan. Pendekatan ini dirancang untuk mendukung analisis tanda tangan dari citra yang tidak selalu ideal.
+text-gray-950
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Pembanding Lebih dari Satu Sampel
+text-gray-950
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Mendukung penggunaan satu hingga lima sampel tanda tangan asli sebagai referensi. Beberapa sampel tersebut digunakan untuk membentuk representasi pembanding yang dapat mengakomodasi variasi alami tanda tangan seseorang.
+text-gray-950
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Cara Pakai SignaCheck
+text-gray-950
+text-5xl
+font-bold
+font-['Work_Sans']
+---
+// Unggah Tanda Tangan
+text-gray-950
+text-base
+font-bold
+font-['Work_Sans']
+---
+// Analisis dan Perbandingan
+text-gray-950
+text-base
+font-bold
+font-['Work_Sans']
+---
+// Pemrosesan Citra
+text-gray-950
+text-base
+font-bold
+font-['Work_Sans']
+---
+// Hasil Verifikasi
+text-gray-950
+text-base
+font-bold
+font-['Work_Sans']
+---
+// © 2026 SignaCheck. Dikembangkan sebagai proyek computer vision.
+text-white
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// SignaCheck
+text-sky-700
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// SignaCheck — Sistem Analisis dan Verifikasi Tanda Tangan Berbasis ML.
+text-white
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Hasil sistem bersifat indikatif dan digunakan sebagai informasi pendukung. Keputusan mengenai keaslian tanda tangan memerlukan pertimbangan lebih lanjut sesuai konteks penggunaannya.
+text-white
+text-lg
+font-normal
+font-['Work_Sans']
+---
+// Tim Pengembang:
+text-white
+text-lg
+font-bold
+font-['Work_Sans']
+---
+// Nur'Afia Avanza<br/>Zaskia Alyssa Putri<br/>Adzkia Nifa Adha
+text-white
+text-lg
+font-normal
+font-['Work_Sans']
+

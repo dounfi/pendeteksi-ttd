@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Periksa Tanda Tangan – SignaCheck</title>
+
+  <!-- Google Fonts: Work Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN dengan konfigurasi tema warna presisi hex -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#010211',
+            primary: '#0C7AB5',
+            deep: '#1E65AB',
+            cyan: '#1F8EBC',
+            teal: '#3FA1C1',
+            soft: '#D0DCE7',
+            panel: '#DEE9F3',
+            charcoal: '#3B3B43',
+            ok: '#58CF71',
+            okdark: '#088152',
+            bad: '#CF5757',
+            warn: '#CFAF58',
+            putih: '#FFFFFF',
+          },
+          fontFamily: {
+            sans: ['"Work Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- CSS Terpusat -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-white text-[#010211] font-sans antialiased overflow-x-hidden selection:bg-[#0C7AB5] selection:text-white">
+
+  <!-- ================================================================
+       1. NAVBAR (SAMA DENGAN INDEX.HTML, FIXED DI ATAS, FULL-WIDTH)
+       ================================================================ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+
+      <!-- Logo & Nama Brand -->
+      <a href="index.html#beranda" class="brand" aria-label="SignaCheck Beranda">
+        <img src="assets/icons/hugeicons_signature.svg" width="48" height="48" alt="Logo SignaCheck" />
+        <span class="brand-name">SignaCheck</span>
+      </a>
+
+      <!-- Menu Navigasi Desktop -->
+      <nav class="nav-menu">
+        <a href="index.html#beranda">Beranda</a>
+        <a href="index.html#tentang">Tentang</a>
+        <a href="index.html#cara-pakai">Cara Pakai</a>
+      </nav>
+
+      <!-- Tombol Cek Tanda Tangan -->
+      <a href="periksa.html" class="btn-nav">Cek Tanda Tangan</a>
+
+      <!-- Tombol Hamburger (Khusus Layar Mobile) -->
+      <button id="hamburger-btn" class="hamburger" aria-label="Buka menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Dropdown Menu Mobile -->
+    <nav id="mobile-nav" class="mobile-nav">
+      <a href="index.html#beranda">Beranda</a>
+      <a href="index.html#tentang">Tentang</a>
+      <a href="index.html#cara-pakai">Cara Pakai</a>
+    </nav>
+  </header>
+
+
+  <!-- ================================================================
+       2. KONTEN UTAMA HALAMAN PERIKSA (DUA KOLOM DI DESKTOP)
+       ================================================================ -->
+  <main class="w-full max-w-[1440px] mx-auto pt-[140px] px-4 sm:px-8 lg:px-[70px] pb-24">
+    <div class="flex flex-col lg:flex-row items-start justify-center gap-[65px]">
+
+      <!-- ────────────────────────────────────────────────────────────
+           KOLOM KIRI (LEBAR 666px DI DESKTOP)
+           ──────────────────────────────────────────────────────────── -->
+      <section class="w-full lg:w-[666px] flex flex-col shrink-0">
+
+        <!-- 1. Judul Utama -->
+        <h1 class="text-[#010211] text-3xl sm:text-4xl font-bold leading-tight">
+          Tanda tangan ini asli atau tidak?
+        </h1>
+
+        <!-- 2. Paragraf Deskripsi -->
+        <p class="text-[#010211] text-base sm:text-lg font-normal leading-relaxed mt-3 max-w-[650px]">
+          Unggah tanda tangan yang pasti asli sebagai pembanding, lalu satu tanda tangan yang ingin diperiksa. Model akan menilai seberapa mirip keduanya.
+        </p>
+
+        <!-- 3. Dua Kartu Input Sejajar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-[26px] mt-6">
+
+          <!-- KARTU INPUT KIRI: Tanda Tangan Pembanding -->
+          <div class="bg-[#DEE9F3] rounded-2xl p-4 flex flex-col justify-between">
+            <!-- Baris Atas: Badge & Link Ganti -->
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#1F8EBC]/20 text-[#1E65AB]">
+                DOKUMEN ACUAN SAH
+              </span>
+              <a href="#" class="text-sm font-bold text-[#0C7AB5] hover:underline hidden">
+                Ganti Tanda Tangan
+              </a>
+            </div>
+
+            <!-- Judul Kartu -->
+            <h2 class="text-[#010211] text-lg font-bold mt-2.5">
+              Tanda Tangan Pembanding
+            </h2>
+
+            <!-- Grid 2x2 Tombol Tab (Tinggi 36px, Radius 12px) -->
+            <div class="grid grid-cols-2 gap-2 mt-3">
+              <!-- Tab 1: Unggah (Default Aktif) -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-[#0C7AB5] text-white shadow-xs transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span>1. Unggah</span>
+              </button>
+
+              <!-- Tab 2: Kamera -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-white/60 text-[#1E65AB] hover:bg-white transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                <span>2. Kamera</span>
+              </button>
+
+              <!-- Tab 3: Pad Layar -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-white/60 text-[#1E65AB] hover:bg-white transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+                <span>3. Pad Layar</span>
+              </button>
+
+              <!-- Tab 4: Udara -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-white/60 text-[#1E65AB] hover:bg-white transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+                  <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6" />
+                  <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+                  <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.9-2.3L2.3 15.9a1.5 1.5 0 0 1 .3-2.3l.5-.4a2 2 0 0 1 2.5.2L7 15" />
+                </svg>
+                <span>4. Udara</span>
+              </button>
+            </div>
+
+            <!-- Drop Area Input (Tinggi 240px, Border Putus-Putus 2px #1F8EBC/50) -->
+            <div class="h-[240px] mt-3 bg-[#D0DCE7] border-2 border-dashed border-[#1F8EBC]/50 rounded-xl flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-[#D0DCE7]/80 transition-colors">
+              <img
+                src="assets/icons/basil_file-upload-outline.png"
+                alt="Ikon Unggah"
+                class="w-28 h-28 sm:w-32 sm:h-32 opacity-25 object-contain pointer-events-none"
+              />
+              <span class="text-sm text-[#010211]/70 font-normal mt-1">
+                Klik atau seret gambar ke sini
+              </span>
+            </div>
+          </div>
+
+          <!-- KARTU INPUT KANAN: Tanda Tangan yang Diperiksa -->
+          <div class="bg-[#DEE9F3] rounded-2xl p-4 flex flex-col justify-between">
+            <!-- Baris Atas: Badge & Link Ganti -->
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#1F8EBC]/20 text-[#1E65AB]">
+                DOKUMEN PERTANYAAN
+              </span>
+              <a href="#" class="text-sm font-bold text-[#0C7AB5] hover:underline hidden">
+                Ganti Tanda Tangan
+              </a>
+            </div>
+
+            <!-- Judul Kartu -->
+            <h2 class="text-[#010211] text-lg font-bold mt-2.5">
+              Tanda Tangan yang Diperiksa
+            </h2>
+
+            <!-- Grid 2x2 Tombol Tab (Tinggi 36px, Radius 12px) -->
+            <div class="grid grid-cols-2 gap-2 mt-3">
+              <!-- Tab 1: Unggah (Default Aktif) -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-[#0C7AB5] text-white shadow-xs transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span>1. Unggah</span>
+              </button>
+
+              <!-- Tab 2: Kamera -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-white/60 text-[#1E65AB] hover:bg-white transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                <span>2. Kamera</span>
+              </button>
+
+              <!-- Tab 3: Pad Layar -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-white/60 text-[#1E65AB] hover:bg-white transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+                <span>3. Pad Layar</span>
+              </button>
+
+              <!-- Tab 4: Udara -->
+              <button
+                type="button"
+                class="h-9 px-2 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 bg-white/60 text-[#1E65AB] hover:bg-white transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-[18px] h-[18px]">
+                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+                  <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6" />
+                  <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+                  <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.9-2.3L2.3 15.9a1.5 1.5 0 0 1 .3-2.3l.5-.4a2 2 0 0 1 2.5.2L7 15" />
+                </svg>
+                <span>4. Udara</span>
+              </button>
+            </div>
+
+            <!-- Drop Area Input (Tinggi 240px, Border Putus-Putus 2px #1F8EBC/50) -->
+            <div class="h-[240px] mt-3 bg-[#D0DCE7] border-2 border-dashed border-[#1F8EBC]/50 rounded-xl flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-[#D0DCE7]/80 transition-colors">
+              <img
+                src="assets/icons/basil_file-upload-outline.png"
+                alt="Ikon Unggah"
+                class="w-28 h-28 sm:w-32 sm:h-32 opacity-25 object-contain pointer-events-none"
+              />
+              <span class="text-sm text-[#010211]/70 font-normal mt-1">
+                Klik atau seret gambar ke sini
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4. Tombol "PERIKSA TANDA TANGAN" (Lebar 280px, Rata Tengah, Disabled) -->
+        <div class="flex justify-center mt-[29px]">
+          <button
+            type="button"
+            disabled
+            class="w-[280px] py-3.5 bg-gradient-to-r from-[#0C7AB5] to-[#5BB4C9] rounded-2xl flex items-center justify-center text-[#D0DCE7] text-lg font-bold tracking-wider opacity-50 cursor-not-allowed uppercase shadow-xs"
+          >
+            PERIKSA TANDA TANGAN
+          </button>
+        </div>
+
+        <!-- 5. Judul "Hasil Pemeriksaan" -->
+        <h2 class="text-[#010211] text-3xl sm:text-4xl font-bold mt-12 mb-4">
+          Hasil Pemeriksaan
+        </h2>
+
+        <!-- 6. Kartu Hasil (Lebar Penuh Kolom, Latar #DEE9F3, Radius 16px) -->
+        <div class="w-full bg-[#DEE9F3] rounded-2xl p-4 sm:p-5 flex flex-col">
+          
+          <!-- Baris Atas: Stempel, Angka 80%, Deskripsi -->
+          <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <img
+              src="assets/img/stamp-asli.png"
+              alt="Stempel Kemungkinan Asli"
+              class="w-[165px] h-[83px] object-contain shrink-0"
+            />
+            <span class="text-[#088152] text-4xl font-bold shrink-0">
+              80%
+            </span>
+            <p class="text-[#010211] text-lg sm:text-xl font-normal leading-snug max-w-[320px]">
+              Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+            </p>
+          </div>
+
+          <!-- Baris Bawah: Bar Indikator 3 Warna + Penanda Marker -->
+          <div class="mt-6 w-full">
+            <div class="relative w-full">
+              <!-- Bar 3 Segmen Warna: Hijau 41%, Kuning 18%, Merah 41% -->
+              <div class="w-full h-4 rounded-sm flex overflow-hidden">
+                <div class="w-[41%] h-full bg-[#58CF71]"></div>
+                <div class="w-[18%] h-full bg-[#CFAF58]"></div>
+                <div class="w-[41%] h-full bg-[#CF5757]"></div>
+              </div>
+
+              <!-- Batang Penanda (Marker): 6x28px, Menonjol di Atas & Bawah, Posisi Kiri 13% -->
+              <div
+                class="absolute left-[13%] top-[-6px] w-[6px] h-7 bg-[#3B3B43] rounded-md pointer-events-none -translate-x-1/2"
+                aria-hidden="true"
+              ></div>
+            </div>
+
+            <!-- Teks Label di Bawah Bar: Mirip, Jarak 0.80, Palsu -->
+            <div class="relative flex justify-between items-start mt-1.5 pt-0.5">
+              <span class="text-[10px] text-[#010211] font-normal">
+                Mirip
+              </span>
+              <span class="absolute left-[13%] -translate-x-1/2 text-[10px] text-[#010211] font-bold whitespace-nowrap">
+                Jarak 0.80
+              </span>
+              <span class="text-[10px] text-[#010211] font-normal">
+                Palsu
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Dua Paragraf Abu-abu Disclaimer & Uji Model -->
+        <div class="mt-7 space-y-2 text-[#010211]/50 text-base sm:text-lg font-normal leading-relaxed">
+          <p>
+            Disclaimer: Hasil model bukan sebagai bukti hukum ... Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </p>
+          <p>
+            Hasil uji model: akurasi ..., AUC & ROC ..., dll
+          </p>
+        </div>
+
+      </section>
+
+
+      <!-- ────────────────────────────────────────────────────────────
+           KOLOM KANAN (LEBAR 606px DI DESKTOP)
+           ──────────────────────────────────────────────────────────── -->
+      <section class="w-full lg:w-[606px] flex flex-col shrink-0">
+
+        <!-- 1. Judul "Penjelasan Lebih Lanjut" -->
+        <h2 class="text-[#010211] text-3xl sm:text-4xl font-bold leading-tight">
+          Penjelasan Lebih Lanjut
+        </h2>
+
+        <!-- 2. Panel Kanan (Latar #DEE9F3, Radius 16px, Padding 16-20px) -->
+        <div class="w-full bg-[#DEE9F3] rounded-2xl p-4 sm:p-5 mt-4 sm:mt-6 flex flex-col">
+
+          <!-- Subjudul Gambar Setelah Diolah -->
+          <h3 class="text-[#010211] text-lg font-bold">
+            Gambar Setelah Diolah
+          </h3>
+
+          <!-- Dua Gambar 250x167 Sejajar -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-[35px] mt-3">
+            
+            <!-- Gambar Tanda Tangan Asli -->
+            <div class="flex flex-col items-center">
+              <img
+                src="assets/img/sample-signature.png"
+                alt="Tanda tangan asli"
+                class="w-[250px] h-[167px] object-cover rounded-sm shadow-xs"
+              />
+              <span class="text-[#010211] text-base sm:text-lg font-normal mt-2.5">
+                Tanda tangan asli
+              </span>
+            </div>
+
+            <!-- Gambar Tanda Tangan yang Diperiksa -->
+            <div class="flex flex-col items-center">
+              <img
+                src="assets/img/sample-signature.png"
+                alt="Tanda tangan yang diperiksa"
+                class="w-[250px] h-[167px] object-cover rounded-sm shadow-xs"
+              />
+              <span class="text-[#010211] text-base sm:text-lg font-normal mt-2.5">
+                Tanda tangan yang diperiksa
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Garis Pemisah (1px, Warna #1F8EBC 50%) -->
+          <hr class="border-t border-[#1F8EBC]/50 my-6" />
+
+          <!-- Subjudul Laporan Forensik Mini & Uji Goyang -->
+          <h3 class="text-[#010211] text-lg font-bold">
+            Laporan Forensik Mini
+          </h3>
+          <p class="text-[#010211] text-base sm:text-lg font-normal mt-0.5">
+            Uji goyang
+          </p>
+
+          <!-- 9 Baris Pil dengan Warna Bergantian: Hijau #58CF71/50, Merah #CF5757/50, Kuning #CFAF58/50 -->
+          <div class="space-y-2.5 mt-4">
+            
+            <!-- Baris 1: Hijau -->
+            <div class="w-full h-[50px] bg-[#58CF71]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 2: Merah -->
+            <div class="w-full h-[50px] bg-[#CF5757]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 3: Kuning -->
+            <div class="w-full h-[50px] bg-[#CFAF58]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 4: Hijau -->
+            <div class="w-full h-[50px] bg-[#58CF71]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 5: Merah -->
+            <div class="w-full h-[50px] bg-[#CF5757]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 6: Kuning -->
+            <div class="w-full h-[50px] bg-[#CFAF58]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 7: Hijau -->
+            <div class="w-full h-[50px] bg-[#58CF71]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 8: Merah -->
+            <div class="w-full h-[50px] bg-[#CF5757]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+            <!-- Baris 9: Kuning -->
+            <div class="w-full h-[50px] bg-[#CFAF58]/50 rounded-2xl px-[18px] flex items-center">
+              <span class="text-[#010211] text-base sm:text-lg font-normal truncate">
+                Qorem ipsum dolor sit amet, consectetur adipiscing elit.
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Tombol "Periksa Pasangan Lain" (Jarak 35px, Lebar 288px, Border 3px #1E65AB) -->
+          <div class="mt-[35px]">
+            <button
+              type="button"
+              class="w-[288px] py-3.5 border-[3px] border-[#1E65AB] text-[#1E65AB] text-lg font-bold rounded-2xl bg-transparent hover:bg-[#1E65AB]/10 transition-colors inline-flex justify-center items-center cursor-pointer shadow-xs"
+            >
+              Periksa Pasangan Lain
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- JavaScript Utama -->
+  <script src="js/main.js"></script>
+</body>
+</html>

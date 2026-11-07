@@ -34,3 +34,6 @@ Thumbs.db
 # Log files
 *.log
 
+
+# Local backups
+frontend v2/_backup/

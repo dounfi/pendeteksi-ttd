@@ -102,6 +102,7 @@ type Stroke = Point[];
 declare global {
   interface Window {
     Hands?: any;
+    Pose?: any;
     Camera?: any;
   }
 }
@@ -137,22 +138,22 @@ export function SignatureInputModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      {/* Manila Modal Card */}
+      {/* Modal Card */}
       <div
-        className="w-full max-w-3xl bg-[#FFFDF8] rounded-3xl border-4 border-white shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="w-full max-w-3xl bg-white rounded-[24px] border border-[#D0DCE7] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] font-['Work_Sans',sans-serif]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-[#FFFBEB] via-[#FEF9C3] to-[#FFFBEB] border-b border-amber-200/80 flex items-center justify-between">
+        <div className="px-6 py-4 bg-[#DEE9F3] border-b border-[#D0DCE7] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#2563EB] text-white shadow-sm border border-white">
-              <PenIcon className="w-5 h-5 text-white" />
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3FA1C1]/50 border-2 border-[#1F8EBC] text-[#1E65AB]">
+              <PenIcon className="w-5 h-5 text-[#0C7AB5]" />
             </span>
             <div>
-              <h2 className="font-display font-bold text-lg text-ink leading-tight">
+              <h2 className="font-['Work_Sans',sans-serif] font-bold text-lg text-[#010211] leading-tight">
                 {title}
               </h2>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-[#010211]/60 font-medium">
                 Pilih metode input yang paling praktis sesuai perangkat Anda
               </p>
             </div>
@@ -160,7 +161,7 @@ export function SignatureInputModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-500 hover:text-slate-800 border border-slate-200 flex items-center justify-center transition-all cursor-pointer shadow-xs"
+            className="w-9 h-9 rounded-full bg-white/80 hover:bg-white text-[#010211]/60 hover:text-[#010211] border border-[#D0DCE7] flex items-center justify-center transition-all cursor-pointer shadow-xs"
             title="Tutup dialog"
           >
             <CloseIcon className="w-4 h-4" />
@@ -168,16 +169,16 @@ export function SignatureInputModal({
         </div>
 
         {/* 4 Navigation Tabs */}
-        <div className="px-6 pt-3 pb-2 bg-slate-50/70 border-b border-slate-200/70 overflow-x-auto">
+        <div className="px-6 pt-3 pb-2 bg-white border-b border-[#D0DCE7] overflow-x-auto">
           <div className="flex items-center gap-2 min-w-max">
             {/* 1. Unggah File */}
             <button
               type="button"
               onClick={() => setActiveTab("upload")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-display font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-['Work_Sans',sans-serif] font-bold transition-all cursor-pointer ${
                 activeTab === "upload"
-                  ? "bg-white text-[#2563EB] shadow-sm border border-blue-200"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  ? "bg-[#0C7AB5]/10 text-[#1E65AB] shadow-xs border-[1.5px] border-[#0C7AB5]"
+                  : "text-[#010211]/60 hover:text-[#010211] hover:bg-[#DEE9F3]/60"
               }`}
             >
               <UploadIcon className="w-4 h-4" />
@@ -188,10 +189,10 @@ export function SignatureInputModal({
             <button
               type="button"
               onClick={() => setActiveTab("camera")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-display font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-['Work_Sans',sans-serif] font-bold transition-all cursor-pointer ${
                 activeTab === "camera"
-                  ? "bg-white text-[#2563EB] shadow-sm border border-blue-200"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  ? "bg-[#0C7AB5]/10 text-[#1E65AB] shadow-xs border-[1.5px] border-[#0C7AB5]"
+                  : "text-[#010211]/60 hover:text-[#010211] hover:bg-[#DEE9F3]/60"
               }`}
             >
               <CameraIcon className="w-4 h-4" />
@@ -202,10 +203,10 @@ export function SignatureInputModal({
             <button
               type="button"
               onClick={() => setActiveTab("pad")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-display font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-['Work_Sans',sans-serif] font-bold transition-all cursor-pointer ${
                 activeTab === "pad"
-                  ? "bg-white text-[#2563EB] shadow-sm border border-blue-200"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  ? "bg-[#0C7AB5]/10 text-[#1E65AB] shadow-xs border-[1.5px] border-[#0C7AB5]"
+                  : "text-[#010211]/60 hover:text-[#010211] hover:bg-[#DEE9F3]/60"
               }`}
             >
               <PenIcon className="w-4 h-4" />
@@ -216,15 +217,15 @@ export function SignatureInputModal({
             <button
               type="button"
               onClick={() => setActiveTab("air")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-display font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-['Work_Sans',sans-serif] font-bold transition-all cursor-pointer ${
                 activeTab === "air"
-                  ? "bg-emerald-50 text-[#166534] shadow-sm border border-emerald-300"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  ? "bg-[#0C7AB5]/10 text-[#1E65AB] shadow-xs border-[1.5px] border-[#0C7AB5]"
+                  : "text-[#010211]/60 hover:text-[#010211] hover:bg-[#DEE9F3]/60"
               }`}
             >
-              <HandAirIcon className="w-4 h-4 text-[#16A34A]" />
+              <HandAirIcon className="w-4 h-4 text-[#0C7AB5]" />
               <span>4. Tulis Udara (Aksesibilitas)</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-[#166534] font-bold">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#DEE9F3] text-[#1E65AB] font-bold">
                 Sensor Jari
               </span>
             </button>
@@ -328,7 +329,7 @@ function TabUpload({ onApply }: { onApply: (dataUrl: string) => void }) {
           <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-[#2563EB] mb-3 shadow-xs">
             <UploadIcon className="w-7 h-7" />
           </div>
-          <p className="font-display font-bold text-base text-ink mb-1">
+          <p className="font-['Work_Sans',sans-serif] font-bold text-base text-ink mb-1">
             Klik untuk memilih berkas atau seret ke sini
           </p>
           <p className="text-xs text-slate-500 max-w-sm">
@@ -355,7 +356,7 @@ function TabUpload({ onApply }: { onApply: (dataUrl: string) => void }) {
                 setPreview(null);
                 setFileName("");
               }}
-              className="px-4 py-2 text-xs font-display font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
+              className="px-4 py-2 text-xs font-['Work_Sans',sans-serif] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
             >
               Ganti Berkas
             </button>
@@ -363,7 +364,7 @@ function TabUpload({ onApply }: { onApply: (dataUrl: string) => void }) {
             <button
               type="button"
               onClick={() => onApply(preview)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-display font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#0C7AB5] hover:bg-[#1E65AB] text-white font-['Work_Sans',sans-serif] font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
             >
               <CheckIcon className="w-4 h-4" />
               <span>Gunakan Tanda Tangan Ini</span>
@@ -467,7 +468,7 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
           <button
             type="button"
             onClick={startCamera}
-            className="px-4 py-2 text-xs font-display font-bold bg-white text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 cursor-pointer"
+            className="px-4 py-2 text-xs font-['Work_Sans',sans-serif] font-bold bg-white text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 cursor-pointer"
           >
             Coba Lagi
           </button>
@@ -499,7 +500,7 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
               type="button"
               disabled={!streamActive}
               onClick={handleSnap}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50 text-white font-display font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50 text-white font-['Work_Sans',sans-serif] font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer"
             >
               <CameraIcon className="w-5 h-5" />
               <span>Jepret Foto</span>
@@ -520,7 +521,7 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
             <button
               type="button"
               onClick={handleRetake}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-display font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-['Work_Sans',sans-serif] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
             >
               <RefreshIcon className="w-4 h-4" />
               <span>Ulangi Pemotretan</span>
@@ -529,7 +530,7 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
             <button
               type="button"
               onClick={() => onApply(capturedImage)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-display font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#0C7AB5] hover:bg-[#1E65AB] text-white font-['Work_Sans',sans-serif] font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
             >
               <CheckIcon className="w-4 h-4" />
               <span>Gunakan Foto Ini</span>
@@ -709,7 +710,7 @@ function TabDrawingPad({ onApply }: { onApply: (dataUrl: string) => void }) {
       {/* Top Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-display font-bold text-slate-700">Ketebalan:</span>
+          <span className="text-xs font-['Work_Sans',sans-serif] font-bold text-slate-700">Ketebalan:</span>
           <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
             <button
               type="button"
@@ -740,7 +741,7 @@ function TabDrawingPad({ onApply }: { onApply: (dataUrl: string) => void }) {
             </button>
           </div>
 
-          <span className="text-xs font-display font-bold text-slate-700 ml-2">Warna Tinta:</span>
+          <span className="text-xs font-['Work_Sans',sans-serif] font-bold text-slate-700 ml-2">Warna Tinta:</span>
           <div className="inline-flex gap-1.5 items-center">
             <button
               type="button"
@@ -766,7 +767,7 @@ function TabDrawingPad({ onApply }: { onApply: (dataUrl: string) => void }) {
             type="button"
             onClick={handleUndo}
             disabled={strokes.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-display font-bold text-slate-600 hover:text-slate-900 disabled:opacity-40 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-['Work_Sans',sans-serif] font-bold text-slate-600 hover:text-slate-900 disabled:opacity-40 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
           >
             <UndoIcon className="w-3.5 h-3.5" />
             <span>Urungkan</span>
@@ -775,7 +776,7 @@ function TabDrawingPad({ onApply }: { onApply: (dataUrl: string) => void }) {
             type="button"
             onClick={handleClear}
             disabled={strokes.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-display font-bold text-rose-600 hover:text-rose-800 disabled:opacity-40 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-['Work_Sans',sans-serif] font-bold text-[#CF5757] hover:text-white disabled:opacity-40 bg-[#CF5757]/10 hover:bg-[#CF5757] rounded-xl transition-all cursor-pointer"
           >
             <RefreshIcon className="w-3.5 h-3.5" />
             <span>Bersihkan</span>
@@ -784,7 +785,7 @@ function TabDrawingPad({ onApply }: { onApply: (dataUrl: string) => void }) {
       </div>
 
       {/* Drawing Canvas */}
-      <div className="relative aspect-[16/9] max-h-72 w-full rounded-2xl border-2 border-slate-300 bg-white overflow-hidden shadow-inner cursor-crosshair">
+      <div className="relative aspect-[16/9] max-h-72 w-full rounded-2xl border-2 border-[#D0DCE7] bg-white overflow-hidden shadow-inner cursor-crosshair">
         <canvas
           ref={canvasRef}
           width={800}
@@ -798,11 +799,11 @@ function TabDrawingPad({ onApply }: { onApply: (dataUrl: string) => void }) {
         />
 
         {strokes.length === 0 && !isDrawing && (
-          <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-slate-400 select-none">
-            <span className="font-display font-bold text-sm text-slate-400">
+          <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-[#010211]/40 select-none">
+            <span className="font-['Work_Sans',sans-serif] font-bold text-sm text-[#010211]/60">
               Tuliskan tanda tangan langsung di atas area ini
             </span>
-            <span className="text-xs text-slate-400 mt-1">
+            <span className="text-xs text-[#010211]/40 mt-1">
               Dapat menggunakan mouse, touchpad, layar sentuh, atau pena digital
             </span>
           </div>
@@ -811,13 +812,13 @@ function TabDrawingPad({ onApply }: { onApply: (dataUrl: string) => void }) {
 
       {/* Bottom Action */}
       <div className="flex items-center justify-between pt-1">
-        <span className="text-xs text-slate-500 font-medium">
+        <span className="text-xs text-[#010211]/60 font-medium">
           {strokes.length > 0 ? `${strokes.length} goresan terdeteksi` : "Belum ada goresan"}
         </span>
         <button
           type="button"
           onClick={handleApply}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-display font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+          className="flex items-center gap-2 px-6 py-2.5 bg-[#0C7AB5] hover:bg-[#1E65AB] text-white font-['Work_Sans',sans-serif] font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
         >
           <CheckIcon className="w-4 h-4" />
           <span>Gunakan Tanda Tangan Ini</span>
@@ -912,41 +913,258 @@ function buildSignatureDataUrl(strokesList: Stroke[]): string | null {
   return outCanvas.toDataURL("image/png");
 }
 
+type TrackerType = "finger" | "wrist" | "elbow";
+type AssistMode = "continuous" | "space" | "pinch";
+
+// One Euro Filter implementation
+class LowPass {
+  prev: number | null = null;
+  filter(x: number, a: number) {
+    this.prev = this.prev === null ? x : a * x + (1 - a) * this.prev;
+    return this.prev;
+  }
+}
+
+const alphaFor = (cutoff: number, dt: number) => 1 / (1 + 1 / (2 * Math.PI * cutoff) / dt);
+
+class OneEuro {
+  private x = new LowPass();
+  private dx = new LowPass();
+  private last: number | null = null;
+
+  constructor(
+    private minCutoff = 0.8,
+    private beta = 3.0,
+    private dCutoff = 1.0
+  ) {}
+
+  reset() {
+    this.x = new LowPass();
+    this.dx = new LowPass();
+    this.last = null;
+  }
+
+  filter(v: number, tMs: number) {
+    const dt = this.last === null ? 1 / 30 : Math.max((tMs - this.last) / 1000, 1 / 120);
+    this.last = tMs;
+    const prev = this.x.prev;
+    const rawD = prev === null ? 0 : (v - prev) / dt;
+    const d = this.dx.filter(rawD, alphaFor(this.dCutoff, dt));
+    return this.x.filter(v, alphaFor(this.minCutoff + this.beta * Math.abs(d), dt));
+  }
+}
+
+// Convert normalized raw video coordinates (0-1) to normalized screen coordinates (0-1)
+// accounting for object-cover cropping and selfie mirror flip
+function getScreenNormCoords(
+  normX: number,
+  normY: number,
+  video: HTMLVideoElement,
+  canvas: HTMLCanvasElement
+): { x: number; y: number } {
+  const cw = canvas.width;
+  const ch = canvas.height;
+  const vw = video.videoWidth || 1280;
+  const vh = video.videoHeight || 720;
+
+  const containerAspect = cw / ch;
+  const videoAspect = vw / vh;
+
+  let renderedW = cw;
+  let renderedH = ch;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (videoAspect > containerAspect) {
+    renderedH = ch;
+    renderedW = ch * videoAspect;
+    offsetX = (renderedW - cw) / 2;
+  } else {
+    renderedW = cw;
+    renderedH = cw / videoAspect;
+    offsetY = (renderedH - ch) / 2;
+  }
+
+  // Mirrored horizontally for selfie webcam
+  const mirroredX = 1 - normX;
+  const canvasX = mirroredX * renderedW - offsetX;
+  const canvasY = normY * renderedH - offsetY;
+
+  return {
+    x: Math.max(0, Math.min(1, canvasX / cw)),
+    y: Math.max(0, Math.min(1, canvasY / ch)),
+  };
+}
+
+// Smooth Bézier curve drawing through midpoints
+function drawSmooth(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[]) {
+  if (pts.length < 2) return;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i].x + pts[i + 1].x) / 2;
+    const my = (pts[i].y + pts[i + 1].y) / 2;
+    ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+  }
+  const l = pts[pts.length - 1];
+  ctx.lineTo(l.x, l.y);
+  ctx.stroke();
+}
+
+// Clean and filter strokes: trim start/end tails, discard close points, validate length
+function cleanStroke(pts: Point[]): Point[] | null {
+  // 1. Buang 2 titik pertama dan 2 titik terakhir tiap goresan (gerakan menutup/membuka cubitan)
+  if (pts.length <= 4) return null;
+  const trimmed = pts.slice(2, pts.length - 2);
+
+  // 2. Buang titik yang jaraknya < 0.004 dari titik sebelumnya (koordinat ternormalisasi)
+  const filtered: Point[] = [];
+  for (let i = 0; i < trimmed.length; i++) {
+    const pt = trimmed[i];
+    if (filtered.length === 0) {
+      filtered.push(pt);
+    } else {
+      const prev = filtered[filtered.length - 1];
+      const dist = Math.hypot(pt.x - prev.x, pt.y - prev.y);
+      if (dist >= 0.004) {
+        filtered.push(pt);
+      }
+    }
+  }
+
+  // 3. Buang goresan yang kurang dari 6 titik atau total panjangnya < 0.02
+  if (filtered.length < 6) return null;
+
+  let totalLen = 0;
+  for (let i = 1; i < filtered.length; i++) {
+    totalLen += Math.hypot(filtered[i].x - filtered[i - 1].x, filtered[i].y - filtered[i - 1].y);
+  }
+  if (totalLen < 0.02) return null;
+
+  return filtered;
+}
+
+// Build final signature export: scaled uniformly to fit 1200x480 canvas with 10% padding
+function buildAirSignatureDataUrl(strokesList: Point[][]): string {
+  const outCanvas = document.createElement("canvas");
+  outCanvas.width = 1200;
+  outCanvas.height = 480;
+  const ctx = outCanvas.getContext("2d");
+  if (!ctx) return "";
+
+  // Background white
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+
+  if (strokesList.length === 0) {
+    return outCanvas.toDataURL("image/png");
+  }
+
+  // Compute bounding box across all strokes (normalized coordinates 0-1)
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  strokesList.forEach((stroke) => {
+    stroke.forEach((pt) => {
+      if (pt.x < minX) minX = pt.x;
+      if (pt.x > maxX) maxX = pt.x;
+      if (pt.y < minY) minY = pt.y;
+      if (pt.y > maxY) maxY = pt.y;
+    });
+  });
+
+  const boxW = Math.max(maxX - minX, 0.001);
+  const boxH = Math.max(maxY - minY, 0.001);
+
+  // 10% padding: usable width = 1200 * 0.8 = 960, usable height = 480 * 0.8 = 384
+  const availW = outCanvas.width * 0.8;
+  const availH = outCanvas.height * 0.8;
+  const scale = Math.min(availW / boxW, availH / boxH);
+
+  const scaledW = boxW * scale;
+  const scaledH = boxH * scale;
+
+  // Center on canvas
+  const offsetX = (outCanvas.width - scaledW) / 2 - minX * scale;
+  const offsetY = (outCanvas.height - scaledH) / 2 - minY * scale;
+
+  ctx.strokeStyle = "#010211";
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  strokesList.forEach((stroke) => {
+    const transformedPts = stroke.map((p) => ({
+      x: p.x * scale + offsetX,
+      y: p.y * scale + offsetY,
+    }));
+    drawSmooth(ctx, transformedPts);
+  });
+
+  return outCanvas.toDataURL("image/png");
+}
+
 function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Accessibility State: Tracking Target & Method
+  const [trackerType, setTrackerType] = useState<TrackerType>("finger");
+  const [assistMode, setAssistMode] = useState<AssistMode>("continuous");
+
   const [isLoadingModel, setIsLoadingModel] = useState<boolean>(true);
   const [modelError, setModelError] = useState<string | null>(null);
-  const [handDetected, setHandDetected] = useState<boolean>(false);
+  const [bodyPartDetected, setBodyPartDetected] = useState<boolean>(false);
   const [isPinching, setIsPinching] = useState<boolean>(false);
   const [forceDrawKey, setForceDrawKey] = useState<boolean>(false);
-  const [assistMode, setAssistMode] = useState<"pinch" | "space" | "continuous">("pinch");
 
-  // Stroke storage: using airStrokesRef so strokes PERSIST across frames without stale closure issues
-  const airStrokesRef = useRef<Stroke[]>([]);
+  // Normalized stroke storage (0-1 coordinates)
+  const airStrokesRef = useRef<Point[][]>([]);
   const currentAirStrokeRef = useRef<Point[]>([]);
-  const isPinchingRef = useRef<boolean>(false);
-  const assistModeRef = useRef<"pinch" | "space" | "continuous">("pinch");
+  const isDrawingRef = useRef<boolean>(false);
+  const assistModeRef = useRef<AssistMode>("continuous");
+  const trackerTypeRef = useRef<TrackerType>("finger");
   const forceDrawKeyRef = useRef<boolean>(false);
 
+  // One Euro filters for X and Y axes
+  const euroXRef = useRef<OneEuro>(new OneEuro(0.8, 3.0, 1.0));
+  const euroYRef = useRef<OneEuro>(new OneEuro(0.8, 3.0, 1.0));
+
+  // Debounce frame counters (3 consecutive frames)
+  const pinchStartCountRef = useRef<number>(0);
+  const pinchStopCountRef = useRef<number>(0);
+  const continuousDetectCountRef = useRef<number>(0);
+  const continuousLostCountRef = useRef<number>(0);
+
   // React state for re-rendering UI & generating live preview
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [strokes, setStrokes] = useState<Point[][]>([]);
   const [livePreviewUrl, setLivePreviewUrl] = useState<string | null>(null);
 
   // Sync refs for event loop
   useEffect(() => {
     assistModeRef.current = assistMode;
+    pinchStartCountRef.current = 0;
+    pinchStopCountRef.current = 0;
+    continuousDetectCountRef.current = 0;
+    continuousLostCountRef.current = 0;
   }, [assistMode]);
+
+  useEffect(() => {
+    trackerTypeRef.current = trackerType;
+    euroXRef.current.reset();
+    euroYRef.current.reset();
+  }, [trackerType]);
 
   useEffect(() => {
     forceDrawKeyRef.current = forceDrawKey;
   }, [forceDrawKey]);
 
-  // Update live preview whenever strokes change
+  // Update live preview whenever strokes change using the 1200x480 uniform export logic
   useEffect(() => {
     if (strokes.length > 0) {
-      const url = buildSignatureDataUrl(strokes);
+      const url = buildAirSignatureDataUrl(strokes);
       setLivePreviewUrl(url);
     } else {
       setLivePreviewUrl(null);
@@ -975,10 +1193,35 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
     };
   }, []);
 
-  // Dynamic script loader for MediaPipe Hands
-  const loadMediaPipeScripts = async (): Promise<boolean> => {
-    if (window.Hands) return true;
+  // Stroke lifecycle handlers
+  const startWriting = () => {
+    if (isDrawingRef.current) return;
+    isDrawingRef.current = true;
+    setIsPinching(true);
+    euroXRef.current.reset();
+    euroYRef.current.reset();
+    currentAirStrokeRef.current = [];
+  };
 
+  const stopWriting = () => {
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
+    setIsPinching(false);
+    euroXRef.current.reset();
+    euroYRef.current.reset();
+
+    if (currentAirStrokeRef.current.length > 0) {
+      const cleaned = cleanStroke(currentAirStrokeRef.current);
+      if (cleaned) {
+        airStrokesRef.current.push(cleaned);
+        setStrokes([...airStrokesRef.current]);
+      }
+      currentAirStrokeRef.current = [];
+    }
+  };
+
+  // Dynamic script loader for MediaPipe Hands and Pose
+  const loadMediaPipeScripts = async (target: TrackerType): Promise<boolean> => {
     const loadScript = (src: string): Promise<void> => {
       return new Promise((resolve, reject) => {
         const existing = document.querySelector(`script[src="${src}"]`);
@@ -998,28 +1241,43 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
 
     try {
       await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
-      await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js");
-      return !!window.Hands;
+      if (target === "elbow") {
+        if (!window.Pose) {
+          await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js");
+        }
+        return !!window.Pose;
+      } else {
+        if (!window.Hands) {
+          await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js");
+        }
+        return !!window.Hands;
+      }
     } catch {
       return false;
     }
   };
 
-  // Main lifecycle: Setup webcam + MediaPipe Hands tracker
+  // Main lifecycle: Setup webcam with 720p 30fps + tracker (Hands or Pose)
   useEffect(() => {
     let stream: MediaStream | null = null;
-    let handsInstance: any = null;
+    let trackerInstance: any = null;
     let animationFrameId: number;
     let isCancelled = false;
+    let isProcessing = false;
 
-    async function initAirTracker() {
+    async function initTracker() {
       setIsLoadingModel(true);
       setModelError(null);
 
       try {
-        // 1. Get webcam stream
+        // 1. Get webcam stream: high quality 1280x720 at 30fps
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30 },
+            facingMode: "user",
+          },
           audio: false,
         });
 
@@ -1030,37 +1288,71 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
           await videoRef.current.play();
         }
 
-        // 2. Load MediaPipe Hands
-        const loaded = await loadMediaPipeScripts();
+        // 2. Load relevant MediaPipe model
+        const currentTarget = trackerType;
+        const loaded = await loadMediaPipeScripts(currentTarget);
         if (isCancelled) return;
-        if (!loaded || !window.Hands) {
-          throw new Error("Gagal menginisialisasi pustaka visi MediaPipe.");
+
+        if (currentTarget === "elbow") {
+          if (!loaded || !window.Pose) {
+            throw new Error("Gagal menginisialisasi pustaka visi MediaPipe Pose.");
+          }
+          trackerInstance = new window.Pose({
+            locateFile: (file: string) =>
+              `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`,
+          });
+          trackerInstance.setOptions({
+            modelComplexity: 0,
+            smoothLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+          });
+          trackerInstance.onResults((results: any) => {
+            if (isCancelled) return;
+            processPoseResults(results);
+          });
+        } else {
+          if (!loaded || !window.Hands) {
+            throw new Error("Gagal menginisialisasi pustaka visi MediaPipe Hands.");
+          }
+          trackerInstance = new window.Hands({
+            locateFile: (file: string) =>
+              `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`,
+          });
+
+          // Configured with high precision: confidence 0.6
+          trackerInstance.setOptions({
+            numHands: 1,
+            maxNumHands: 1,
+            minHandDetectionConfidence: 0.6,
+            minDetectionConfidence: 0.6,
+            minHandPresenceConfidence: 0.6,
+            minTrackingConfidence: 0.6,
+            modelComplexity: 1,
+          });
+
+          trackerInstance.onResults((results: any) => {
+            if (isCancelled) return;
+            processHandResults(results);
+          });
         }
 
-        handsInstance = new window.Hands({
-          locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`,
-        });
-
-        handsInstance.setOptions({
-          maxNumHands: 1,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        });
-
-        handsInstance.onResults((results: any) => {
-          if (isCancelled) return;
-          processHandResults(results);
-        });
-
-        // 3. Process video frames in loop
+        // 3. Process video frames in non-blocking loop
         const processFrame = async () => {
           if (isCancelled) return;
-          if (videoRef.current && videoRef.current.readyState >= 2 && handsInstance) {
+          if (
+            videoRef.current &&
+            videoRef.current.readyState >= 2 &&
+            trackerInstance &&
+            !isProcessing
+          ) {
+            isProcessing = true;
             try {
-              await handsInstance.send({ image: videoRef.current });
+              await trackerInstance.send({ image: videoRef.current });
             } catch {
-              // Frame dropped or busy
+              // Frame dropped
+            } finally {
+              isProcessing = false;
             }
           }
           if (!isCancelled) {
@@ -1076,13 +1368,13 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
           setModelError(
             err.name === "NotAllowedError"
               ? "Akses kamera ditolak oleh peramban."
-              : "Tidak dapat menyalakan pelacak tangan. Silakan gunakan Pad Sentuh sebagai alternatif."
+              : "Tidak dapat menyalakan pelacak kamera. Silakan periksa izin kamera atau gunakan Pad Sentuh sebagai alternatif."
           );
         }
       }
     }
 
-    initAirTracker();
+    initTracker();
 
     return () => {
       isCancelled = true;
@@ -1093,152 +1385,283 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
-      if (handsInstance && handsInstance.close) {
+      if (trackerInstance && trackerInstance.close) {
         try {
-          handsInstance.close();
+          trackerInstance.close();
         } catch {}
       }
     };
-  }, []);
+  }, [trackerType]);
 
-  // Process hand landmarks & compute pinch / drawing
-  const processHandResults = (results: any) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Clear overlay
+  // Redraw camera overlay canvas: saved strokes + in-progress stroke + pointer feedback
+  const redrawCanvas = (
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    pointerPos: { x: number; y: number } | null,
+    isWriting: boolean,
+    currentTracker: TrackerType
+  ) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. Redraw ALL saved strokes from airStrokesRef (PERSISTENT ON CAMERA SCREEN)
-    ctx.strokeStyle = "#2563EB";
+    ctx.strokeStyle = "#0C7AB5";
     ctx.lineWidth = 4.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
+    // 1. Draw saved strokes
     airStrokesRef.current.forEach((stroke) => {
-      if (stroke.length === 0) return;
-      if (stroke.length === 1) {
-        ctx.beginPath();
-        ctx.arc(stroke[0].x, stroke[0].y, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = "#2563EB";
-        ctx.fill();
-        return;
-      }
-      ctx.beginPath();
-      ctx.moveTo(stroke[0].x, stroke[0].y);
-      for (let i = 1; i < stroke.length - 1; i++) {
-        const xc = (stroke[i].x + stroke[i + 1].x) / 2;
-        const yc = (stroke[i].y + stroke[i + 1].y) / 2;
-        ctx.quadraticCurveTo(stroke[i].x, stroke[i].y, xc, yc);
-      }
-      const last = stroke[stroke.length - 1];
-      ctx.lineTo(last.x, last.y);
-      ctx.stroke();
+      const screenPts = stroke.map((p) => ({
+        x: p.x * canvas.width,
+        y: p.y * canvas.height,
+      }));
+      drawSmooth(ctx, screenPts);
     });
 
-    // 2. Draw in-progress active air stroke
+    // 2. Draw active in-progress stroke
     if (currentAirStrokeRef.current.length > 0) {
-      const cur = currentAirStrokeRef.current;
-      ctx.beginPath();
-      ctx.moveTo(cur[0].x, cur[0].y);
-      for (let i = 1; i < cur.length - 1; i++) {
-        const xc = (cur[i].x + cur[i + 1].x) / 2;
-        const yc = (cur[i].y + cur[i + 1].y) / 2;
-        ctx.quadraticCurveTo(cur[i].x, cur[i].y, xc, yc);
-      }
-      const last = cur[cur.length - 1];
-      ctx.lineTo(last.x, last.y);
-      ctx.stroke();
+      const curScreenPts = currentAirStrokeRef.current.map((p) => ({
+        x: p.x * canvas.width,
+        y: p.y * canvas.height,
+      }));
+      drawSmooth(ctx, curScreenPts);
     }
 
+    // 3. Render pointer feedback
+    if (pointerPos) {
+      const px = pointerPos.x * canvas.width;
+      const py = pointerPos.y * canvas.height;
+
+      ctx.save();
+
+      // Outer glow aura
+      ctx.beginPath();
+      ctx.arc(px, py, isWriting ? 20 : 14, 0, Math.PI * 2);
+      ctx.strokeStyle = isWriting ? "rgba(22, 163, 74, 0.45)" : "rgba(12, 122, 181, 0.35)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Center point
+      ctx.beginPath();
+      ctx.arc(px, py, isWriting ? 9 : 7, 0, Math.PI * 2);
+      ctx.fillStyle = isWriting ? "#16A34A" : "#0C7AB5";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.stroke();
+
+      // Label tag
+      ctx.font = "bold 11px 'Work Sans', sans-serif";
+      const labelText =
+        currentTracker === "elbow"
+          ? "💪 Siku"
+          : currentTracker === "wrist"
+          ? "✊ Kepalan"
+          : "👆 Jari";
+      const textMetrics = ctx.measureText(labelText);
+      const pillW = textMetrics.width + 14;
+      const pillH = 20;
+
+      ctx.fillStyle = "rgba(1, 2, 17, 0.85)";
+      ctx.beginPath();
+      ctx.roundRect(px - pillW / 2, py - 34, pillW, pillH, 6);
+      ctx.fill();
+
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText(labelText, px - pillW / 2 + 7, py - 20);
+
+      ctx.restore();
+    }
+  };
+
+  // Process Hand Landmarks (Finger & Wrist Modes)
+  const processHandResults = (results: any) => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-      setHandDetected(false);
-      setIsPinching(false);
-      // If hand lost, save current stroke if any
-      if (currentAirStrokeRef.current.length > 1) {
-        airStrokesRef.current.push([...currentAirStrokeRef.current]);
-        setStrokes([...airStrokesRef.current]);
+      setBodyPartDetected(false);
+      continuousLostCountRef.current++;
+      continuousDetectCountRef.current = 0;
+      pinchStartCountRef.current = 0;
+      pinchStopCountRef.current = 0;
+
+      if (continuousLostCountRef.current >= 3 && isDrawingRef.current) {
+        stopWriting();
       }
-      currentAirStrokeRef.current = [];
+
+      redrawCanvas(ctx, canvas, null, false, trackerTypeRef.current);
       return;
     }
 
-    setHandDetected(true);
+    setBodyPartDetected(true);
+    continuousDetectCountRef.current++;
+    continuousLostCountRef.current = 0;
+
     const landmarks = results.multiHandLandmarks[0];
 
-    // Landmark references:
-    // 0: Wrist, 4: Thumb Tip, 5: Index MCP, 8: Index Tip
-    const wrist = landmarks[0];
-    const thumbTip = landmarks[4];
-    const indexMcp = landmarks[5];
-    const indexTip = landmarks[8];
+    // Pen point determination:
+    // "Ujung Jari" = landmark 8
+    // "Kepalan / Pergelangan" = rata-rata landmark 0, 5, 9, 13, 17 (pusat telapak stabil)
+    let targetNorm: { x: number; y: number };
 
-    // Mirrored coordinates for natural selfie mirror
-    const currentX = (1 - indexTip.x) * canvas.width;
-    const currentY = indexTip.y * canvas.height;
+    if (trackerTypeRef.current === "wrist") {
+      const palmIndices = [0, 5, 9, 13, 17];
+      const avgX =
+        palmIndices.reduce((sum, idx) => sum + landmarks[idx].x, 0) / palmIndices.length;
+      const avgY =
+        palmIndices.reduce((sum, idx) => sum + landmarks[idx].y, 0) / palmIndices.length;
+      targetNorm = { x: avgX, y: avgY };
+    } else {
+      targetNorm = { x: landmarks[8].x, y: landmarks[8].y };
+    }
 
-    // Euclidean distances for scale & pinch ratio (Fog-Mirror algorithm)
-    const scale = Math.hypot(wrist.x - indexMcp.x, wrist.y - indexMcp.y);
-    const pinchDist = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y);
-    const pinchRatio = pinchDist / (scale || 0.1);
+    // Convert to normalized screen coordinates (0-1)
+    const screenNorm = getScreenNormCoords(targetNorm.x, targetNorm.y, video, canvas);
 
-    // Determine drawing state
-    let drawingActive = false;
+    // Apply One Euro filter on normalized coordinates
+    const nowMs = performance.now();
+    const filteredX = euroXRef.current.filter(screenNorm.x, nowMs);
+    const filteredY = euroYRef.current.filter(screenNorm.y, nowMs);
+    const filteredPos = { x: filteredX, y: filteredY };
+
+    // Pinch distance calculation independent of camera distance:
+    // pinchRatio = dist(landmark 4, landmark 8) / dist(landmark 0, landmark 9)
+    const dPinch = Math.hypot(
+      landmarks[4].x - landmarks[8].x,
+      landmarks[4].y - landmarks[8].y
+    );
+    const dPalm =
+      Math.hypot(landmarks[0].x - landmarks[9].x, landmarks[0].y - landmarks[9].y) || 0.001;
+    const pinchRatio = dPinch / dPalm;
+
     const mode = assistModeRef.current;
 
     if (mode === "pinch") {
-      // Hysteresis: start < 0.28, stop > 0.38
-      if (isPinchingRef.current) {
-        drawingActive = pinchRatio < 0.38;
+      if (!isDrawingRef.current) {
+        if (pinchRatio < 0.28) {
+          pinchStartCountRef.current++;
+          pinchStopCountRef.current = 0;
+          if (pinchStartCountRef.current >= 3) {
+            startWriting();
+          }
+        } else {
+          pinchStartCountRef.current = 0;
+        }
       } else {
-        drawingActive = pinchRatio < 0.28;
+        if (pinchRatio > 0.45) {
+          pinchStopCountRef.current++;
+          pinchStartCountRef.current = 0;
+          if (pinchStopCountRef.current >= 3) {
+            stopWriting();
+          }
+        } else {
+          pinchStopCountRef.current = 0;
+        }
       }
     } else if (mode === "space") {
-      drawingActive = forceDrawKeyRef.current;
-    } else if (mode === "continuous") {
-      drawingActive = true;
-    }
-
-    isPinchingRef.current = drawingActive;
-    setIsPinching(drawingActive);
-
-    // Record or finalize stroke
-    if (drawingActive) {
-      currentAirStrokeRef.current.push({ x: currentX, y: currentY });
-    } else {
-      if (currentAirStrokeRef.current.length > 1) {
-        airStrokesRef.current.push([...currentAirStrokeRef.current]);
-        setStrokes([...airStrokesRef.current]);
+      // Spacebar controls writing directly
+      if (forceDrawKeyRef.current && !isDrawingRef.current) {
+        startWriting();
+      } else if (!forceDrawKeyRef.current && isDrawingRef.current) {
+        stopWriting();
       }
-      currentAirStrokeRef.current = [];
+    } else {
+      // Continuous mode with 3-frame debounce
+      if (continuousDetectCountRef.current >= 3 && !isDrawingRef.current) {
+        startWriting();
+      }
     }
 
-    // 3. Render Fingertip Pointer Feedback
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(currentX, currentY, drawingActive ? 8 : 6, 0, Math.PI * 2);
-    ctx.fillStyle = drawingActive ? "#16A34A" : "#3B82F6";
-    ctx.fill();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = "#FFFFFF";
-    ctx.stroke();
-
-    // Pulse aura when ink is actively writing
-    if (drawingActive) {
-      ctx.beginPath();
-      ctx.arc(currentX, currentY, 16, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(34, 197, 94, 0.4)";
-      ctx.lineWidth = 3;
-      ctx.stroke();
+    // Record point if writing is active
+    if (isDrawingRef.current) {
+      currentAirStrokeRef.current.push(filteredPos);
     }
-    ctx.restore();
+
+    // Redraw canvas with updated pointer and strokes
+    redrawCanvas(ctx, canvas, filteredPos, isDrawingRef.current, trackerTypeRef.current);
+  };
+
+  // Process Pose Landmarks (Elbow Mode)
+  const processPoseResults = (results: any) => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    if (!results.poseLandmarks || results.poseLandmarks.length === 0) {
+      setBodyPartDetected(false);
+      continuousLostCountRef.current++;
+      continuousDetectCountRef.current = 0;
+      if (continuousLostCountRef.current >= 3 && isDrawingRef.current) {
+        stopWriting();
+      }
+      redrawCanvas(ctx, canvas, null, false, "elbow");
+      return;
+    }
+
+    // Left Elbow: 13, Right Elbow: 14
+    const leftElbow = results.poseLandmarks[13];
+    const rightElbow = results.poseLandmarks[14];
+    const leftVis = leftElbow?.visibility ?? 0;
+    const rightVis = rightElbow?.visibility ?? 0;
+
+    if (leftVis < 0.25 && rightVis < 0.25) {
+      setBodyPartDetected(false);
+      continuousLostCountRef.current++;
+      continuousDetectCountRef.current = 0;
+      if (continuousLostCountRef.current >= 3 && isDrawingRef.current) {
+        stopWriting();
+      }
+      redrawCanvas(ctx, canvas, null, false, "elbow");
+      return;
+    }
+
+    setBodyPartDetected(true);
+    continuousDetectCountRef.current++;
+    continuousLostCountRef.current = 0;
+
+    let activeElbow = leftElbow;
+    if (rightVis > 0.25 && (leftVis < 0.25 || rightElbow.y < leftElbow.y - 0.05)) {
+      activeElbow = rightElbow;
+    }
+
+    const screenNorm = getScreenNormCoords(activeElbow.x, activeElbow.y, video, canvas);
+
+    const nowMs = performance.now();
+    const filteredX = euroXRef.current.filter(screenNorm.x, nowMs);
+    const filteredY = euroYRef.current.filter(screenNorm.y, nowMs);
+    const filteredPos = { x: filteredX, y: filteredY };
+
+    if (assistModeRef.current === "space") {
+      if (forceDrawKeyRef.current && !isDrawingRef.current) {
+        startWriting();
+      } else if (!forceDrawKeyRef.current && isDrawingRef.current) {
+        stopWriting();
+      }
+    } else {
+      if (continuousDetectCountRef.current >= 3 && !isDrawingRef.current) {
+        startWriting();
+      }
+    }
+
+    if (isDrawingRef.current) {
+      currentAirStrokeRef.current.push(filteredPos);
+    }
+
+    redrawCanvas(ctx, canvas, filteredPos, isDrawingRef.current, "elbow");
   };
 
   const handleClearAir = () => {
     airStrokesRef.current = [];
     currentAirStrokeRef.current = [];
+    euroXRef.current.reset();
+    euroYRef.current.reset();
+    isDrawingRef.current = false;
+    setIsPinching(false);
     setStrokes([]);
   };
 
@@ -1246,6 +1669,10 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
     if (airStrokesRef.current.length > 0) {
       airStrokesRef.current.pop();
       currentAirStrokeRef.current = [];
+      euroXRef.current.reset();
+      euroYRef.current.reset();
+      isDrawingRef.current = false;
+      setIsPinching(false);
       setStrokes([...airStrokesRef.current]);
     }
   };
@@ -1260,60 +1687,118 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
 
   return (
     <div className="space-y-4">
-      {/* Assist Mode Selector Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-display font-bold text-slate-700">Metode Menulis:</span>
+      {/* Accessibility Control Header */}
+      <div className="flex flex-col gap-3 pb-3 border-b border-[#D0DCE7]">
+        {/* Row 1: Tracker Target Selection (Accessibility First) */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-['Work_Sans',sans-serif] font-bold text-ink">
+              Bagian Pelacak:
+            </span>
+            <div className="inline-flex rounded-xl bg-[#DEE9F3] p-1 border border-[#D0DCE7]">
+              <button
+                type="button"
+                onClick={() => setTrackerType("finger")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  trackerType === "finger"
+                    ? "bg-[#0C7AB5] text-white shadow-xs"
+                    : "text-[#1E65AB] hover:text-ink"
+                }`}
+              >
+                👆 Ujung Jari
+              </button>
+              <button
+                type="button"
+                onClick={() => setTrackerType("wrist")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  trackerType === "wrist"
+                    ? "bg-[#0C7AB5] text-white shadow-xs"
+                    : "text-[#1E65AB] hover:text-ink"
+                }`}
+              >
+                ✊ Kepalan / Pergelangan
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTrackerType("elbow");
+                  if (assistMode === "pinch") setAssistMode("continuous");
+                }}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  trackerType === "elbow"
+                    ? "bg-[#0C7AB5] text-white shadow-xs"
+                    : "text-[#1E65AB] hover:text-ink"
+                }`}
+              >
+                💪 Siku Lengan
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleUndoAir}
+              disabled={strokes.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-['Work_Sans',sans-serif] font-bold text-slate-700 hover:text-slate-900 disabled:opacity-40 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
+            >
+              <UndoIcon className="w-3.5 h-3.5" />
+              <span>Urungkan</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleClearAir}
+              disabled={strokes.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-['Work_Sans',sans-serif] font-bold text-[#CF5757] hover:text-white disabled:opacity-40 bg-[#CF5757]/10 hover:bg-[#CF5757] rounded-xl transition-all cursor-pointer"
+            >
+              <RefreshIcon className="w-3.5 h-3.5" />
+              <span>Bersihkan</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Method to Ink/Write */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-['Work_Sans',sans-serif] font-bold text-ink">
+            Metode Menulis:
+          </span>
           <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
             <button
               type="button"
-              onClick={() => setAssistMode("pinch")}
+              onClick={() => setAssistMode("continuous")}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                assistMode === "pinch" ? "bg-white text-[#166534] shadow-xs" : "text-slate-600 hover:text-ink"
+                assistMode === "continuous"
+                  ? "bg-[#0C7AB5] text-white shadow-xs"
+                  : "text-slate-600 hover:text-ink"
               }`}
             >
-              Cubit Jari (Pinch)
+              Tunjuk Bebas
             </button>
             <button
               type="button"
               onClick={() => setAssistMode("space")}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                assistMode === "space" ? "bg-white text-[#166534] shadow-xs" : "text-slate-600 hover:text-ink"
+                assistMode === "space"
+                  ? "bg-[#0C7AB5] text-white shadow-xs"
+                  : "text-slate-600 hover:text-ink"
               }`}
             >
               Tahan Tombol / Spasi
             </button>
-            <button
-              type="button"
-              onClick={() => setAssistMode("continuous")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                assistMode === "continuous" ? "bg-white text-[#166534] shadow-xs" : "text-slate-600 hover:text-ink"
-              }`}
-            >
-              Tunjuk Bebas
-            </button>
+            {trackerType !== "elbow" && (
+              <button
+                type="button"
+                onClick={() => setAssistMode("pinch")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  assistMode === "pinch"
+                    ? "bg-[#0C7AB5] text-white shadow-xs"
+                    : "text-slate-600 hover:text-ink"
+                }`}
+              >
+                Cubit Jari (Pinch)
+              </button>
+            )}
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleUndoAir}
-            disabled={strokes.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-display font-bold text-slate-600 hover:text-slate-900 disabled:opacity-40 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
-          >
-            <UndoIcon className="w-3.5 h-3.5" />
-            <span>Urungkan</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleClearAir}
-            disabled={strokes.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-display font-bold text-rose-600 hover:text-rose-800 disabled:opacity-40 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all cursor-pointer"
-          >
-            <RefreshIcon className="w-3.5 h-3.5" />
-            <span>Bersihkan</span>
-          </button>
         </div>
       </div>
 
@@ -1326,7 +1811,7 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Dual Panel Grid: Left Camera with Persistent Ink + Right Live Document Paper Preview */}
+          {/* Dual Panel Grid: Left Camera + Right Live Paper Preview */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
             {/* LEFT: Live Mirrored Camera Viewport (7 Columns) */}
             <div className="lg:col-span-7 flex flex-col space-y-2">
@@ -1337,7 +1822,7 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
                   playsInline
                   autoPlay
                   muted
-                  className="w-full h-full object-cover scale-x-[-1] opacity-80"
+                  className="w-full h-full object-cover scale-x-[-1] opacity-85"
                 />
 
                 {/* Foreground Overlay Canvas with Persistent Ink */}
@@ -1352,29 +1837,37 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
                 {isLoadingModel && (
                   <div className="absolute inset-0 bg-slate-900/85 backdrop-blur-xs flex flex-col items-center justify-center text-white space-y-2 z-20">
                     <div className="w-8 h-8 border-3 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                    <p className="font-display font-bold text-sm">Menyiapkan sensor pelacak jari...</p>
-                    <p className="text-xs text-slate-300">Harap izinkan akses kamera</p>
+                    <p className="font-['Work_Sans',sans-serif] font-bold text-sm">
+                      Menyiapkan sensor pelacak {trackerType === "elbow" ? "siku..." : "tangan..."}
+                    </p>
+                    <p className="text-xs text-slate-300">Mengoptimalkan sensor akurasi tinggi</p>
                   </div>
                 )}
 
                 {/* Status Feedback Badge */}
                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                   <span
-                    className={`flex items-center gap-1.5 text-[11px] font-display font-bold px-3 py-1 rounded-full backdrop-blur-md shadow-xs border ${
-                      !handDetected
+                    className={`flex items-center gap-1.5 text-[11px] font-['Work_Sans',sans-serif] font-bold px-3 py-1 rounded-full backdrop-blur-md shadow-xs border ${
+                      !bodyPartDetected
                         ? "bg-slate-900/80 text-slate-300 border-slate-700"
                         : isPinching
                         ? "bg-emerald-600/95 text-white border-emerald-400 animate-pulse"
-                        : "bg-blue-600/90 text-white border-blue-400"
+                        : "bg-[#0C7AB5]/95 text-white border-[#1F8EBC]"
                     }`}
                   >
                     <span
                       className={`w-2 h-2 rounded-full ${
-                        !handDetected ? "bg-slate-400" : isPinching ? "bg-white" : "bg-sky-200"
+                        !bodyPartDetected
+                          ? "bg-slate-400"
+                          : isPinching
+                          ? "bg-white"
+                          : "bg-sky-200"
                       }`}
                     />
-                    {!handDetected
-                      ? "Arahkan Tangan ke Kamera"
+                    {!bodyPartDetected
+                      ? trackerType === "elbow"
+                        ? "Arahkan Siku ke Kamera"
+                        : "Arahkan Tangan / Jari ke Kamera"
                       : isPinching
                       ? "Tinta Aktif Menulis di Layar"
                       : "Pena Terangkat (Arahkan Jari)"}
@@ -1382,16 +1875,22 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
                 </div>
 
                 {/* Guide overlay on bottom of camera */}
-                <div className="absolute bottom-2.5 inset-x-3 z-10 text-[10.5px] font-medium text-white/90 bg-slate-900/70 backdrop-blur-xs px-2.5 py-1 rounded-lg text-center">
-                  {assistMode === "pinch"
-                    ? "Cubit jempol & telunjuk untuk menulis • Renggangkan untuk mengangkat pena"
+                <div className="absolute bottom-2.5 inset-x-3 z-10 text-[10.5px] font-medium text-white/90 bg-slate-900/75 backdrop-blur-xs px-2.5 py-1 rounded-lg text-center">
+                  {assistMode === "continuous"
+                    ? `Gerakkan ${
+                        trackerType === "elbow"
+                          ? "siku"
+                          : trackerType === "wrist"
+                          ? "kepalan tangan"
+                          : "jari"
+                      } bebas di udara • Garis otomatis tersimpan`
                     : assistMode === "space"
-                    ? "Tekan / tahan SPASI untuk mengeluarkan tinta saat jari bergerak"
-                    : "Gerakkan telunjuk bebas di udara • Garis otomatis tersimpan"}
+                    ? "Tahan SPASI atau tombol di bawah saat bergerak untuk menorehkan tinta"
+                    : "Cubit jempol & telunjuk untuk menulis • Renggangkan untuk mengangkat pena"}
                 </div>
               </div>
 
-              {/* Spacebar Toggle Button for Accessibility */}
+              {/* Accessible Push Button for Space Mode */}
               {assistMode === "space" && (
                 <button
                   type="button"
@@ -1399,30 +1898,36 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
                   onMouseUp={() => setForceDrawKey(false)}
                   onTouchStart={() => setForceDrawKey(true)}
                   onTouchEnd={() => setForceDrawKey(false)}
-                  className={`w-full py-2 rounded-xl font-display font-bold text-xs uppercase tracking-wider transition-all select-none cursor-pointer ${
+                  className={`w-full py-2.5 rounded-xl font-['Work_Sans',sans-serif] font-bold text-xs uppercase tracking-wider transition-all select-none cursor-pointer ${
                     forceDrawKey
                       ? "bg-[#16A34A] text-white shadow-inner scale-[0.99]"
-                      : "bg-emerald-100 text-[#166534] hover:bg-emerald-200 border border-emerald-300 shadow-xs"
+                      : "bg-[#0C7AB5]/15 text-[#0C7AB5] hover:bg-[#0C7AB5]/25 border border-[#0C7AB5]/30 shadow-xs"
                   }`}
                 >
-                  {forceDrawKey ? "Sedang Mengeluarkan Tinta (Lepas untuk Angkat)" : "Tahan Tombol Ini untuk Menulis di Udara"}
+                  {forceDrawKey
+                    ? "✓ Sedang Menorehkan Tinta (Lepas untuk Mengangkat)"
+                    : "Tahan Tombol Ini / SPASI untuk Menulis di Udara"}
                 </button>
               )}
             </div>
 
             {/* RIGHT: Real-time Live Document Paper Preview (5 Columns) */}
-            <div className="lg:col-span-5 flex flex-col justify-between space-y-3 p-4 bg-amber-50/70 rounded-2xl border-2 border-amber-200/80">
+            <div className="lg:col-span-5 flex flex-col justify-between space-y-3 p-4 bg-[#DEE9F3] rounded-2xl border border-[#D0DCE7]">
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-amber-200/60">
-                  <span className="text-xs font-display font-bold text-ink">
+                <div className="flex items-center justify-between pb-2 border-b border-[#D0DCE7]">
+                  <span className="text-xs font-['Work_Sans',sans-serif] font-bold text-ink">
                     Pratinjau Hasil Nyata (Kertas)
                   </span>
                   <span
-                    className={`text-[10px] font-display font-bold px-2 py-0.5 rounded-full ${
-                      strokes.length > 0 ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"
+                    className={`text-[10px] font-['Work_Sans',sans-serif] font-bold px-2 py-0.5 rounded-full ${
+                      strokes.length > 0
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-slate-200 text-slate-600"
                     }`}
                   >
-                    {strokes.length > 0 ? `${strokes.length} Goresan Tersimpan` : "Menunggu Coretan"}
+                    {strokes.length > 0
+                      ? `${strokes.length} Goresan Tersimpan`
+                      : "Menunggu Coretan"}
                   </span>
                 </div>
 
@@ -1460,7 +1965,7 @@ function TabAirWriting({ onApply }: { onApply: (dataUrl: string) => void }) {
                   type="button"
                   disabled={!livePreviewUrl}
                   onClick={handleApplyAir}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#16A34A] hover:bg-[#15803D] disabled:opacity-40 text-white font-display font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0C7AB5] hover:bg-[#1E65AB] disabled:opacity-40 text-white font-['Work_Sans',sans-serif] font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   <CheckIcon className="w-4 h-4" />
                   <span>Gunakan Tanda Tangan Ini</span>
