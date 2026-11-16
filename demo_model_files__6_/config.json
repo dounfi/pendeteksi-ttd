@@ -5,6 +5,7 @@
   "preprocess_mode": "binary",
   "threshold": 0.4824983775615692,
   "margin": 1.0,
+  "catatan_metrik": "Kunci metrics.test_* bernilai SAMA dengan metrics.per_dataset.D1 (hanya set uji D1), BUKAN metrik gabungan D1+D2. Gunakan per_dataset untuk melaporkan D1 dan D2 secara terpisah. ragu_z adalah z-score Uji Goyang (tanpa satuan), ragu_margin adalah lebar zona ragu dalam satuan jarak. ragu_z dikalibrasi pada 1 pembanding.",
   "tensorflow_version": "2.20.0",
   "keras_version": "3.13.2",
   "metrics": {

@@ -36,24 +36,53 @@ interface ForensicItem {
 interface ShakeData {
   z_score: number;
   ragu_z: number;
+  ragu_margin?: number | null;
   mean_dist: number;
   std_dist: number;
+  n_variants?: number;
+  flip_rate?: number;
   is_confident: boolean;
   status: string;
+  catatan?: string;
+}
+
+type DisplayStatus = "ASLI" | "BELUM YAKIN" | "PALSU";
+
+interface FusionData {
+  decision: "ASLI" | "PALSU";
+  score: number;
+  threshold: number;
+  agrees_with_model?: boolean;
 }
 
 interface VerifyResponse {
   decision: "ASLI" | "PALSU";
+  status?: DisplayStatus;
+  status_reasons?: string[];
   is_genuine: boolean;
   distance: number;
+  distances_per_ref?: number[];
+  n_refs_used?: number;
   threshold: number;
   ragu_z?: number;
+  ragu_margin?: number | null;
   similarity_pct?: number;
   similarity_percentage?: number;
   shake_test?: ShakeData;
   shake_info?: ShakeData;
   forensic_report?: ForensicItem[];
-  fusion_decision?: string;
+  forensic_summary?: {
+    mirip: number;
+    agak_beda: number;
+    beda: number;
+    total: number;
+    n_pembanding: number;
+  } | null;
+  fusion?: FusionData | null;
+  fusion_decision?: string | null;
+  ref_consistency?: { mean_pair_dist: number; max_pair_dist: number; inconsistent: boolean } | null;
+  explain_map?: string;
+  warnings?: string[];
   steps?: {
     ref?: { asli?: string; final?: string; hasil?: string };
     qry?: { asli?: string; final?: string; hasil?: string };
@@ -181,43 +210,59 @@ function PeriksaPage() {
     e: React.ChangeEvent<HTMLInputElement>,
     target: "ref" | "qry"
   ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const err = validateFile(file);
-    if (err) { setErrorMsg(err); return; }
-    const b64 = await readFileAsDataUrl(file);
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length === 0) return;
     if (target === "ref") {
-      if (refImages.length >= 5) {
-        setErrorMsg("Maks. 5 tanda tangan pembanding. Harap hapus beberapa.");
-        return;
-      }
-      setRefImages((prev) => [...prev, b64]);
+      await addRefFiles(files);
       setRefTab("upload");
     } else {
-      setQryImage(b64);
+      const file = files[0];
+      if (!file) return;
+      const err = validateFile(file);
+      if (err) { setErrorMsg(err); return; }
+      setQryImage(await readFileAsDataUrl(file));
       setQryTab("upload");
+      setResult(null);
+      setErrorMsg(null);
     }
+  };
+
+  // Tambah beberapa pembanding sekaligus (maks. 5 total); file tidak valid dilewati dengan pesan.
+  const addRefFiles = async (files: File[]) => {
+    const slot = 5 - refImages.length;
+    if (slot <= 0) {
+      setErrorMsg("Maks. 5 tanda tangan pembanding. Harap hapus beberapa.");
+      return;
+    }
+    const diterima: string[] = [];
+    let pesan: string | null = null;
+    for (const f of files.slice(0, slot)) {
+      const err = validateFile(f);
+      if (err) { pesan = err; continue; }
+      diterima.push(await readFileAsDataUrl(f));
+    }
+    if (files.length > slot) {
+      pesan = `Hanya ${slot} file pertama yang dipakai (maks. 5 pembanding).`;
+    }
+    if (diterima.length > 0) setRefImages((prev) => [...prev, ...diterima].slice(0, 5));
     setResult(null);
-    setErrorMsg(null);
-    e.target.value = "";
+    setErrorMsg(pesan);
   };
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>, target: "ref" | "qry") => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length === 0) return;
+    if (target === "ref") {
+      await addRefFiles(files);
+      return;
+    }
+    const file = files[0];
     if (!file) return;
     const err = validateFile(file);
     if (err) { setErrorMsg(err); return; }
-    const b64 = await readFileAsDataUrl(file);
-    if (target === "ref") {
-      if (refImages.length >= 5) {
-        setErrorMsg("Maks. 5 tanda tangan pembanding. Harap hapus beberapa.");
-        return;
-      }
-      setRefImages((prev) => [...prev, b64]);
-    } else {
-      setQryImage(b64);
-    }
+    setQryImage(await readFileAsDataUrl(file));
     setResult(null);
     setErrorMsg(null);
   };
@@ -357,17 +402,25 @@ function PeriksaPage() {
   ---------------------------------------------------------- */
   const threshold = result?.threshold ?? modelInfo?.threshold ?? 0.4824983775615692;
   const raguZ = result?.ragu_z ?? modelInfo?.ragu_z;
+  // Zona ragu dalam SATUAN JARAK (ragu_margin), bukan z-score (ragu_z).
+  const raguMargin = result?.ragu_margin ?? modelInfo?.ragu_margin ?? null;
   const shakeData = result?.shake_test || result?.shake_info;
 
+  // Lebar pita bar indikator (skala bar = 0 .. 2*threshold, batas tepat di tengah)
+  const bandRagu = raguMargin != null ? Math.min(100, Math.max(0, (2 * raguMargin / (2 * threshold)) * 100)) : 18;
+  const bandSisi = (100 - bandRagu) / 2;
+
   // Three-status logic
+  // Sumber tunggal status = backend (r.status). Fallback lokal hanya untuk respons lama.
   const deriveStatus = (
     r: VerifyResponse | null,
     thr: number,
     shake: ShakeData | undefined
-  ): "ASLI" | "BELUM YAKIN" | "PALSU" => {
+  ): DisplayStatus => {
     if (!r) return "BELUM YAKIN";
+    if (r.status) return r.status;
     if (shake && !shake.is_confident) return "BELUM YAKIN";
-    return r.distance < thr ? "ASLI" : "PALSU";
+    return r.distance <= thr ? "ASLI" : "PALSU";
   };
 
   const displayStatus = deriveStatus(result, threshold, shakeData);
@@ -428,6 +481,7 @@ function PeriksaPage() {
         ref={refFileInputRef}
         onChange={(e) => handleFileUpload(e, "ref")}
         accept="image/*"
+        multiple
         className="hidden"
       />
       <input
@@ -715,14 +769,23 @@ function PeriksaPage() {
                     </p>
                     {/* Skor Kemiripan */}
                     <p className="text-sm text-[#010211]/70">
-                      <span className="font-bold">Skor kemiripan: </span>
+                      <span className="font-bold">Indeks kedekatan: </span>
                       <span className={`font-bold ${percentColor}`}>{percentNumber}%</span>
                       {" "}
-                      <span className="text-xs text-[#010211]/50">(dihitung dari jarak embedding, bukan peluang statistik)</span>
+                      <span className="text-xs text-[#010211]/50">(50% = tepat di batas keputusan; bukan peluang statistik)</span>
                     </p>
-                    {result.fusion_decision && (
+                    {result.status_reasons && result.status_reasons.length > 0 && (
+                      <ul className="text-xs text-[#8A6A00] font-medium list-disc pl-4">
+                        {result.status_reasons.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    )}
+                    {(result.fusion?.decision ?? result.fusion_decision) && (
                       <p className="text-xs text-[#010211]/60 font-medium">
-                        Keputusan fusi: <span className="font-bold">{result.fusion_decision}</span>
+                        Pembanding tambahan (model + ciri klasik):{" "}
+                        <span className="font-bold">{result.fusion?.decision ?? result.fusion_decision}</span>
+                        {result.fusion && result.fusion.agrees_with_model === false && (
+                          <span className="text-[#8A6A00]"> · berbeda dari keputusan model, tinjau lebih hati-hati</span>
+                        )}
                       </p>
                     )}
                   </div>
@@ -732,9 +795,9 @@ function PeriksaPage() {
                 <div className="w-full">
                   <div className="relative w-full">
                     <div className="w-full h-4 rounded-sm flex overflow-hidden">
-                      <div className="w-[41%] h-full bg-[#58CF71]" />
-                      <div className="w-[18%] h-full bg-[#CFAF58]" />
-                      <div className="w-[41%] h-full bg-[#CF5757]" />
+                      <div className="h-full bg-[#58CF71]" style={{ width: `${bandSisi}%` }} />
+                      <div className="h-full bg-[#CFAF58]" style={{ width: `${bandRagu}%` }} />
+                      <div className="h-full bg-[#CF5757]" style={{ width: `${bandSisi}%` }} />
                     </div>
                     <div className="absolute top-[-6px] w-[6px] h-7 bg-[#3B3B43] rounded-md pointer-events-none -translate-x-1/2" style={{ left: `${markerPosition}%` }} aria-hidden="true" />
                   </div>
@@ -746,9 +809,21 @@ function PeriksaPage() {
                     <span className="text-[10px] text-[#010211] font-normal">Berbeda</span>
                   </div>
                   <p className="text-[10px] text-[#010211]/50 mt-1">
-                    Batas keputusan: {threshold.toFixed(4)} · {raguZ ? `zona ragu: ±${raguZ.toFixed(4)}` : ""}
+                    Batas keputusan: {threshold.toFixed(4)}
+                    {raguMargin != null ? ` · zona ragu: ±${raguMargin.toFixed(4)} (satuan jarak)` : ""}
+                    {raguZ ? ` · ambang keyakinan Uji Goyang: z ≥ ${raguZ.toFixed(2)}` : ""}
                   </p>
                 </div>
+
+                {/* Peringatan kualitas / validasi input */}
+                {result.warnings && result.warnings.length > 0 && (
+                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-sm text-amber-800">
+                    <p className="font-bold mb-1">Perhatikan kualitas input:</p>
+                    <ul className="list-disc pl-5 space-y-0.5">
+                      {result.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Anjuran tambah pembanding */}
                 {showOneRefWarning && (
@@ -813,13 +888,41 @@ function PeriksaPage() {
 
                 <hr className="border-t border-[#1F8EBC]/50 my-6" />
 
+                {/* Peta penjelasan model (oklusi pada embedding) */}
+                {result.explain_map && (
+                  <>
+                    <h3 className="text-[#010211] text-lg font-bold">Bagian yang Paling Membedakan (menurut model)</h3>
+                    <p className="text-xs text-[#010211]/50 mt-0.5 mb-3">
+                      Area merah = bila ditutup, jarak ke pembanding turun. Artinya area itu paling mendorong model menilai
+                      "berbeda". Ini perkiraan berbasis oklusi pada embedding model, bukan bukti pasti.
+                    </p>
+                    <div className="flex justify-center">
+                      <img src={result.explain_map} alt="Peta bagian yang membedakan" className="w-full max-w-[420px] rounded-sm shadow-xs bg-white" />
+                    </div>
+                    <hr className="border-t border-[#1F8EBC]/50 my-6" />
+                  </>
+                )}
+
                 {/* Penjelasan Pendamping (Forensik) */}
                 <h3 className="text-[#010211] text-lg font-bold">
                   Penjelasan Pendamping (ciri morfologi)
                 </h3>
-                <p className="text-xs text-[#010211]/50 mt-0.5 mb-3">
-                  Delapan ciri ini bersifat informatif — bukan keputusan utama.
+                <p className="text-xs text-[#010211]/50 mt-0.5 mb-1">
+                  Delapan ciri klasik ini penjelas pendamping, bukan alasan langsung keputusan model.
+                  {result.forensic_summary && result.forensic_summary.n_pembanding > 1
+                    ? ` Dibandingkan dengan nilai tengah dari ${result.forensic_summary.n_pembanding} pembanding.`
+                    : ""}
                 </p>
+                {result.forensic_summary && (
+                  <p className="text-xs font-semibold text-[#010211]/70 mb-3">
+                    {result.forensic_summary.mirip} dari {result.forensic_summary.total} ciri mirip
+                    {" · "}{result.forensic_summary.agak_beda} agak beda
+                    {" · "}{result.forensic_summary.beda} beda.
+                    {" "}<span className="font-normal text-[#010211]/50">
+                      Pasangan asli pun lazim memiliki 1–3 ciri yang tampak berbeda.
+                    </span>
+                  </p>
+                )}
 
                 <div className="space-y-2.5">
                   {result.forensic_report && result.forensic_report.length > 0
@@ -852,8 +955,12 @@ function PeriksaPage() {
                         Uji Goyang (keyakinan): {shakeData.status}
                       </span>
                       <span className="text-[#010211]/80 text-xs font-normal mt-0.5 leading-normal">
-                        Ketahanan terhadap variasi mikro citra · Z-Score: {shakeData.z_score.toFixed(2)}
-                        {" · "}Rata-rata jarak ke k pembanding: {shakeData.mean_dist.toFixed(4)}
+                        Ketahanan terhadap variasi mikro citra · Z-Score (searah keputusan): {shakeData.z_score.toFixed(2)}
+                        {" · "}Rata-rata jarak varian ke k pembanding: {shakeData.mean_dist.toFixed(4)}
+                        {shakeData.flip_rate !== undefined && shakeData.n_variants
+                          ? ` · Varian yang membalik keputusan: ${Math.round(shakeData.flip_rate * shakeData.n_variants)} dari ${shakeData.n_variants}`
+                          : ""}
+                        {shakeData.catatan ? ` · ${shakeData.catatan}` : ""}
                       </span>
                     </div>
                   )}
@@ -885,10 +992,11 @@ interface SampleResultPanelProps {
 
 function SampleResultPanel({ pair, result, loading, error, showGT, onRevealGT, threshold }: SampleResultPanelProps) {
   const shakeData = result?.shake_test || result?.shake_info;
-  const deriveStatus = (): "ASLI" | "BELUM YAKIN" | "PALSU" => {
+  const deriveStatus = (): DisplayStatus => {
     if (!result) return "BELUM YAKIN";
+    if (result.status) return result.status;
     if (shakeData && !shakeData.is_confident) return "BELUM YAKIN";
-    return result.distance < threshold ? "ASLI" : "PALSU";
+    return result.distance <= threshold ? "ASLI" : "PALSU";
   };
   const status = deriveStatus();
   const statusColor = status === "ASLI" ? "text-green-700" : status === "BELUM YAKIN" ? "text-yellow-700" : "text-red-700";
@@ -960,14 +1068,24 @@ function ModelInfoPanel({ modelInfo, loading }: { modelInfo: ModelInfo | null; l
               <InfoRow label="Nama model" value={modelInfo.nama_model} />
               <InfoRow label="Mode pengolahan citra" value={modelInfo.preprocess_mode} />
               <InfoRow label="Batas keputusan (threshold)" value={modelInfo.threshold?.toFixed(10) ?? "—"} />
-              {modelInfo.ragu_z && <InfoRow label="Zona ragu (ragu_z)" value={modelInfo.ragu_z.toFixed(10)} />}
+              {modelInfo.ragu_z && <InfoRow label="Ambang keyakinan Uji Goyang (z-score)" value={modelInfo.ragu_z.toFixed(4)} />}
+              {modelInfo.ragu_margin != null && <InfoRow label="Lebar zona ragu (satuan jarak)" value={`±${modelInfo.ragu_margin.toFixed(4)}`} />}
               <InfoRow label="Dataset latih" value="CEDAR (55 orang) + Toloka (120 orang)" />
               {modelInfo.model_hash && (
                 <InfoRow label="Hash model (6 karakter)" value={modelInfo.model_hash.substring(0, 6).toUpperCase()} />
               )}
-              {modelInfo.banyak_pembanding !== undefined && (
-                <InfoRow label="Banyak pembanding" value={String(modelInfo.banyak_pembanding)} />
-              )}
+              {(() => {
+                const bp = modelInfo.banyak_pembanding?.["D1"];
+                const k1 = bp?.["1"];
+                const k5 = bp?.["5"];
+                if (!k1 || !k5) return null;
+                return (
+                  <InfoRow
+                    label="Banyak pembanding (EER D1)"
+                    value={`k=1: ${(k1.eer * 100).toFixed(1)}% → k=5: ${(k5.eer * 100).toFixed(1)}%`}
+                  />
+                );
+              })()}
               {modelInfo.metrics?.per_dataset?.D1 && (
                 <>
                   <InfoRow label="AUC D1" value={modelInfo.metrics.per_dataset.D1.auc?.toFixed(4) ?? "—"} />
@@ -975,6 +1093,7 @@ function ModelInfoPanel({ modelInfo, loading }: { modelInfo: ModelInfo | null; l
                   <InfoRow label="Akurasi D1" value={modelInfo.metrics.per_dataset.D1.accuracy?.toFixed(4) ?? "—"} />
                   <InfoRow label="FAR D1" value={modelInfo.metrics.per_dataset.D1.FAR?.toFixed(4) ?? "—"} />
                   <InfoRow label="FRR D1" value={modelInfo.metrics.per_dataset.D1.FRR?.toFixed(4) ?? "—"} />
+                  <InfoRow label="FAR tiruan mahir D1" value={modelInfo.metrics.per_dataset.D1.FAR_skilled_forgery?.toFixed(4) ?? "—"} />
                 </>
               )}
               {modelInfo.metrics?.per_dataset?.D2 && (

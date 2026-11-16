@@ -192,6 +192,52 @@ def run_tests():
         "pass": all(s.status_code == 200 for s in [r18_1, r18_2, r18_3])
     }
 
+    # TC19: Pembanding duplikat diabaikan (k efektif = 1) + peringatan
+    r19 = requests.post(f"{API_URL}/api/verify", json={"ref_images": [b64_1, b64_1, b64_1], "qry_image": b64_2})
+    d19 = r19.json() if r19.status_code == 200 else {}
+    results["TC19"] = {
+        "status_code": r19.status_code,
+        "actual": f"n_refs_used: {d19.get('n_refs_used')}, warnings: {len(d19.get('warnings', []))}",
+        "pass": r19.status_code == 200 and d19.get("n_refs_used") == 1 and len(d19.get("warnings", [])) >= 1
+    }
+
+    # TC20: Query identik dengan pembanding -> tidak boleh 'ASLI' tegas (BELUM YAKIN + peringatan salinan)
+    r20 = requests.post(f"{API_URL}/api/verify", json={"ref_image": b64_1, "qry_image": b64_1})
+    d20 = r20.json() if r20.status_code == 200 else {}
+    results["TC20"] = {
+        "status_code": r20.status_code,
+        "actual": f"status: {d20.get('status')}, reasons: {d20.get('status_reasons')}",
+        "pass": r20.status_code == 200 and d20.get("status") == "BELUM YAKIN"
+    }
+
+    # TC21: Struktur respons baru (status, zona ragu dalam jarak, ringkasan forensik, peta penjelasan)
+    r21 = requests.post(f"{API_URL}/api/verify", json={"ref_images": [b64_1, b64_2, b64_3], "qry_image": b64_4})
+    d21 = r21.json() if r21.status_code == 200 else {}
+    shake21 = d21.get("shake_test") or {}
+    ok21 = (
+        r21.status_code == 200
+        and d21.get("status") in ["ASLI", "BELUM YAKIN", "PALSU"]
+        and d21.get("ragu_margin") is not None
+        and "flip_rate" in shake21
+        and d21.get("forensic_summary") is not None
+        and isinstance(d21.get("fusion"), dict)
+        and bool(d21.get("explain_map"))
+    )
+    results["TC21"] = {
+        "status_code": r21.status_code,
+        "actual": f"status: {d21.get('status')}, ragu_margin: {d21.get('ragu_margin')}, shake: {shake21.get('z_score')}, explain_map: {bool(d21.get('explain_map'))}",
+        "pass": ok21
+    }
+
+    # TC22: Pasangan lama /api/verify-json tetap berfungsi dan konsisten dengan /api/verify
+    r22 = requests.post(f"{API_URL}/api/verify-json", json={"ref_image": b64_1, "qry_image": b64_2})
+    d22 = r22.json() if r22.status_code == 200 else {}
+    results["TC22"] = {
+        "status_code": r22.status_code,
+        "actual": f"decision: {d22.get('decision')}, distance: {d22.get('distance')} (verify: {d01.get('distance')})",
+        "pass": r22.status_code == 200 and d22.get("distance") == d01.get("distance")
+    }
+
     print(json.dumps(results, indent=2))
 
 if __name__ == "__main__":

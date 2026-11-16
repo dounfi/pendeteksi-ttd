@@ -389,7 +389,59 @@ function TabUpload({ onApply }: { onApply: (dataUrl: string) => void }) {
 /* ================================================================
    TAB 2: AMBIL FOTO KAMERA (WEBCAM SNAPSHOT)
    ================================================================ */
+/** Ukur kualitas frame (kecerahan, kontras, ketajaman) pada versi kecil. Hanya saran, bukan penolakan. */
+function analyzeFrame(source: CanvasImageSource, sw: number, sh: number, sx = 0, sy = 0): string[] {
+  const W = 320;
+  const H = Math.max(1, Math.round((W * sh) / sw));
+  const c = document.createElement("canvas");
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return [];
+  ctx.drawImage(source, sx, sy, sw, sh, 0, 0, W, H);
+  const d = ctx.getImageData(0, 0, W, H).data;
+  const g = new Float32Array(W * H);
+  let sum = 0;
+  for (let i = 0; i < W * H; i++) {
+    const v = 0.299 * (d[i * 4] ?? 0) + 0.587 * (d[i * 4 + 1] ?? 0) + 0.114 * (d[i * 4 + 2] ?? 0);
+    g[i] = v;
+    sum += v;
+  }
+  const at = (j: number) => g[j] ?? 0;
+  const mean = sum / (W * H);
+  let varSum = 0;
+  for (let i = 0; i < g.length; i++) {
+    const dv = at(i) - mean;
+    varSum += dv * dv;
+  }
+  const contrast = Math.sqrt(varSum / g.length);
+  // Varians Laplacian 3x3 sebagai ukuran ketajaman
+  let lSum = 0;
+  let lSq = 0;
+  let n = 0;
+  for (let y = 1; y < H - 1; y++) {
+    for (let x = 1; x < W - 1; x++) {
+      const i = y * W + x;
+      const lap = at(i - 1) + at(i + 1) + at(i - W) + at(i + W) - 4 * at(i);
+      lSum += lap;
+      lSq += lap * lap;
+      n++;
+    }
+  }
+  const sharpness = lSq / n - (lSum / n) * (lSum / n);
+
+  const issues: string[] = [];
+  if (mean < 90) issues.push("Terlalu gelap, tambahkan cahaya.");
+  else if (mean > 250) issues.push("Terlalu terang, kurangi cahaya langsung.");
+  if (contrast < 18) issues.push("Kontras rendah, pastikan tinta jelas di atas kertas polos.");
+  if (sharpness < 12) issues.push("Kurang fokus atau buram, tahan kamera stabil dan tunggu fokus.");
+  return issues;
+}
+
 function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [liveIssues, setLiveIssues] = useState<string[]>([]);
+  const [snapIssues, setSnapIssues] = useState<string[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streamActive, setStreamActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -399,10 +451,26 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
   const startCamera = useCallback(async () => {
     setCameraError(null);
     try {
+      // Kamera belakang bila ada (memotret kertas); 'ideal' agar laptop tetap memakai webcam yang ada.
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false,
       });
+      // Adaptif: minta fokus & eksposur otomatis kontinu bila perangkat mendukung (diabaikan bila tidak).
+      try {
+        const track = stream.getVideoTracks()[0];
+        if (track) {
+          const caps = (track.getCapabilities?.() ?? {}) as Record<string, unknown>;
+          const focus = caps["focusMode"];
+          const expo = caps["exposureMode"];
+          const advanced: Record<string, unknown>[] = [];
+          if (Array.isArray(focus) && focus.includes("continuous")) advanced.push({ focusMode: "continuous" });
+          if (Array.isArray(expo) && expo.includes("continuous")) advanced.push({ exposureMode: "continuous" });
+          if (advanced.length) await track.applyConstraints({ advanced } as MediaTrackConstraints);
+        }
+      } catch {
+        /* tidak didukung: lanjut tanpa */
+      }
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
@@ -435,24 +503,69 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
   }, [startCamera, stopCamera]);
 
   // Snap photo
+  // Hitung area video yang tampak di dalam kotak bidik (video memakai object-cover, kotak = inset 32/48 px)
+  const guideRegion = (video: HTMLVideoElement, box: HTMLDivElement) => {
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const rect = box.getBoundingClientRect();
+    const s = Math.max(rect.width / vw, rect.height / vh);
+    const ox = (vw * s - rect.width) / 2;
+    const oy = (vh * s - rect.height) / 2;
+    const inset = window.innerWidth >= 640 ? 48 : 32;
+    let sx = (inset + ox) / s;
+    let sy = (inset + oy) / s;
+    let sw = (rect.width - 2 * inset) / s;
+    let sh = (rect.height - 2 * inset) / s;
+    sx = Math.max(0, Math.min(vw - 1, sx));
+    sy = Math.max(0, Math.min(vh - 1, sy));
+    sw = Math.max(1, Math.min(vw - sx, sw));
+    sh = Math.max(1, Math.min(vh - sy, sh));
+    return { sx, sy, sw, sh };
+  };
+
+  // Pemeriksaan kualitas langsung saat pratinjau (ringan, tiap 800 ms)
+  useEffect(() => {
+    if (!streamActive || capturedImage) return;
+    const id = window.setInterval(() => {
+      const video = videoRef.current;
+      const box = boxRef.current;
+      if (!video || !box || !video.videoWidth) return;
+      const { sx, sy, sw, sh } = guideRegion(video, box);
+      try {
+        setLiveIssues(analyzeFrame(video, sw, sh, sx, sy));
+      } catch {
+        /* abaikan */
+      }
+    }, 800);
+    return () => window.clearInterval(id);
+  }, [streamActive, capturedImage]);
+
+  // Snap photo: hanya area di dalam kotak bidik yang disimpan (bukan seluruh frame/meja)
   const handleSnap = () => {
-    if (!videoRef.current) return;
     const video = videoRef.current;
+    const box = boxRef.current;
+    if (!video || !box) return;
+    if (!video.videoWidth || !video.videoHeight) {
+      setCameraError("Kamera belum siap. Tunggu beberapa detik lalu coba lagi.");
+      return;
+    }
+    const { sx, sy, sw, sh } = guideRegion(video, box);
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
+    canvas.width = Math.round(sw);
+    canvas.height = Math.round(sh);
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Draw frame
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL("image/png");
-    setCapturedImage(dataUrl);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    setSnapIssues(analyzeFrame(canvas, canvas.width, canvas.height));
+    setCapturedImage(canvas.toDataURL("image/png"));
     stopCamera();
   };
 
   const handleRetake = () => {
     setCapturedImage(null);
+    setSnapIssues([]);
+    setLiveIssues([]);
     startCamera();
   };
 
@@ -475,7 +588,7 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
         </div>
       ) : !capturedImage ? (
         <div className="space-y-3">
-          <div className="relative aspect-[16/9] max-h-80 w-full bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+          <div ref={boxRef} className="relative aspect-[16/9] max-h-80 w-full bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
             <video
               ref={videoRef}
               playsInline
@@ -494,6 +607,12 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
               </span>
             </div>
           </div>
+
+          {liveIssues.length > 0 && (
+            <ul className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 list-disc pl-6">
+              {liveIssues.map((m, i) => <li key={i}>{m}</li>)}
+            </ul>
+          )}
 
           <div className="flex justify-center pt-2">
             <button
@@ -516,6 +635,15 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
               className="max-h-full max-w-full object-contain filter contrast-125"
             />
           </div>
+
+          {snapIssues.length > 0 && (
+            <div className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+              <p className="mb-1">Foto ini mungkin kurang baik. Disarankan diulang:</p>
+              <ul className="list-disc pl-5">
+                {snapIssues.map((m, i) => <li key={i}>{m}</li>)}
+              </ul>
+            </div>
+          )}
 
           <div className="flex items-center justify-between pt-2">
             <button

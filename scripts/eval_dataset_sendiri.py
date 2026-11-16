@@ -391,6 +391,18 @@ output = {
     },
     "per_pemilik": per_owner_results,
     "banyak_pembanding": {str(k): v for k, v in k_results.items()},
+    "catatan_protokol": (
+        "PERHATIAN: 'keseluruhan' dan 'banyak_pembanding' memakai protokol BERBEDA, jadi angkanya tidak boleh "
+        "dibandingkan langsung (mis. EER k=1 vs EER keseluruhan). 'keseluruhan': pasangan asli-asli C(n,2), "
+        "asli-tiruan n x n, dan asli-orang-lain disampel maks. 400 per pemilik. 'banyak_pembanding': k pembanding "
+        "acak per percobaan; query = sisa asli (label 0), semua tiruan dan SEMUA asli milik orang lain (label 1), "
+        "dirata-ratakan pada 30 percobaan. Untuk menilai efek k, bandingkan k=1 dengan k>1 DALAM tabel "
+        "banyak_pembanding yang sama."
+    ),
+    "catatan_target_validasi": (
+        "Nilai pada 'target_validasi' diambil dari hasil evaluasi sebelumnya (bukan kebenaran dasar eksternal). "
+        "Gunakan hanya sebagai uji regresi reproduksibilitas, bukan bukti bahwa model benar."
+    ),
     "target_validasi": {
         "FRR": "~9.3% (±0.3%)",
         "FAR_tiruan": "~52.8% (±0.3%)",

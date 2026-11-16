@@ -15,7 +15,8 @@ export interface ModelInfo {
   preprocess_mode: string;
   threshold: number;
   ragu_z?: number;
-  banyak_pembanding?: number;
+  ragu_margin?: number | null;
+  banyak_pembanding?: Record<string, Record<string, { auc: number; auc_std: number; eer: number; eer_std: number }>>;
   model_hash?: string;
   metrics?: {
     per_dataset?: {
