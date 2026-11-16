@@ -10,6 +10,13 @@ export interface DatasetMetrics {
   FAR_random_forgery?: number;
 }
 
+export interface StatusAkhir {
+  FAR_keputusan_model?: number;
+  FAR_status_ASLI?: number;
+  FAR_status_ASLI_mahir?: number | null;
+  asli_dikenali_ASLI?: number;
+}
+
 export interface ModelInfo {
   nama_model: string;
   preprocess_mode: string;
@@ -18,10 +25,16 @@ export interface ModelInfo {
   ragu_margin?: number | null;
   banyak_pembanding?: Record<string, Record<string, { auc: number; auc_std: number; eer: number; eer_std: number }>>;
   model_hash?: string;
+  status_akhir?: {
+    D1?: StatusAkhir;
+    D2?: StatusAkhir;
+    D3?: StatusAkhir;
+  };
   metrics?: {
     per_dataset?: {
       D1?: DatasetMetrics;
       D2?: DatasetMetrics;
+      D3?: DatasetMetrics;
     };
   };
 }

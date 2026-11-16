@@ -400,7 +400,7 @@ function PeriksaPage() {
   /* ----------------------------------------------------------
      RESULT DERIVATIONS
   ---------------------------------------------------------- */
-  const threshold = result?.threshold ?? modelInfo?.threshold ?? 0.4824983775615692;
+  const threshold = result?.threshold ?? modelInfo?.threshold ?? 0.3369181156158447;
   const raguZ = result?.ragu_z ?? modelInfo?.ragu_z;
   // Zona ragu dalam SATUAN JARAK (ragu_margin), bukan z-score (ragu_z).
   const raguMargin = result?.ragu_margin ?? modelInfo?.ragu_margin ?? null;
@@ -1070,7 +1070,19 @@ function ModelInfoPanel({ modelInfo, loading }: { modelInfo: ModelInfo | null; l
               <InfoRow label="Batas keputusan (threshold)" value={modelInfo.threshold?.toFixed(10) ?? "—"} />
               {modelInfo.ragu_z && <InfoRow label="Ambang keyakinan Uji Goyang (z-score)" value={modelInfo.ragu_z.toFixed(4)} />}
               {modelInfo.ragu_margin != null && <InfoRow label="Lebar zona ragu (satuan jarak)" value={`±${modelInfo.ragu_margin.toFixed(4)}`} />}
-              <InfoRow label="Dataset latih" value="CEDAR (55 orang) + Toloka (120 orang)" />
+              <InfoRow label="Dataset latih" value="CEDAR (55) + BHSig260 Bengali (50) + Hindi (160) orang" />
+              {modelInfo.status_akhir?.D3 && (
+                <InfoRow
+                  label="Tiruan lolos berstatus ASLI (foto sendiri, 1 pembanding)"
+                  value={`${((modelInfo.status_akhir.D3.FAR_status_ASLI ?? 0) * 100).toFixed(1)}%`}
+                />
+              )}
+              {modelInfo.status_akhir?.D3 && (
+                <InfoRow
+                  label="Asli yang langsung berstatus ASLI (foto sendiri, 1 pembanding)"
+                  value={`${((modelInfo.status_akhir.D3.asli_dikenali_ASLI ?? 0) * 100).toFixed(1)}%`}
+                />
+              )}
               {modelInfo.model_hash && (
                 <InfoRow label="Hash model (6 karakter)" value={modelInfo.model_hash.substring(0, 6).toUpperCase()} />
               )}
@@ -1088,7 +1100,7 @@ function ModelInfoPanel({ modelInfo, loading }: { modelInfo: ModelInfo | null; l
               })()}
               {modelInfo.metrics?.per_dataset?.D1 && (
                 <>
-                  <InfoRow label="AUC D1" value={modelInfo.metrics.per_dataset.D1.auc?.toFixed(4) ?? "—"} />
+                  <InfoRow label="AUC D1 (CEDAR)" value={modelInfo.metrics.per_dataset.D1.auc?.toFixed(4) ?? "—"} />
                   <InfoRow label="EER D1" value={modelInfo.metrics.per_dataset.D1.eer?.toFixed(4) ?? "—"} />
                   <InfoRow label="Akurasi D1" value={modelInfo.metrics.per_dataset.D1.accuracy?.toFixed(4) ?? "—"} />
                   <InfoRow label="FAR D1" value={modelInfo.metrics.per_dataset.D1.FAR?.toFixed(4) ?? "—"} />
@@ -1098,7 +1110,7 @@ function ModelInfoPanel({ modelInfo, loading }: { modelInfo: ModelInfo | null; l
               )}
               {modelInfo.metrics?.per_dataset?.D2 && (
                 <>
-                  <InfoRow label="AUC D2" value={modelInfo.metrics.per_dataset.D2.auc?.toFixed(4) ?? "—"} />
+                  <InfoRow label="AUC D2 (BHSig260)" value={modelInfo.metrics.per_dataset.D2.auc?.toFixed(4) ?? "—"} />
                   <InfoRow label="EER D2" value={modelInfo.metrics.per_dataset.D2.eer?.toFixed(4) ?? "—"} />
                 </>
               )}
@@ -1128,8 +1140,8 @@ function KeterbatasanBox() {
       <h3 className="font-bold text-sm text-amber-900 mb-2">Keterbatasan</h3>
       <ul className="list-disc list-inside space-y-1.5 text-xs text-amber-800">
         <li>Dilatih dari tanda tangan hasil scan; foto berbayangan atau buram menurunkan akurasi.</li>
-        <li>Dataset Toloka tidak berisi tiruan terlatih; FAR tiruan terlatih mungkin lebih tinggi.</li>
-        <li>Uji dataset mandiri hanya 3 orang; tiruan buatan teman sering lolos (FAR tiruan ~52%).</li>
+        <li>Batas keputusan sengaja ketat untuk menekan tanda tangan palsu yang lolos; akibatnya banyak tanda tangan asli berstatus "Belum yakin". Tambahkan pembanding (hingga 5) atau minta tinjauan manusia.</li>
+        <li>Uji dataset mandiri hanya 3 orang; angka tiruan lolos pada data foto sendiri hanya indikasi, bukan jaminan.</li>
         <li>Hasil adalah indikasi kecurigaan, bukan bukti hukum.</li>
       </ul>
     </div>

@@ -26,7 +26,16 @@ from pydantic import BaseModel
 # ---------------------------------------------------------------------------
 # Konstanta & konfigurasi
 # ---------------------------------------------------------------------------
-EXPECTED_HASH = "48B77FEFF782E83EDBF161EF52E6106F0573471E828CFC41BEA573AEAA3CCD01"
+# Model yang dikenali (folder + SHA256). Default "v2" (ensemble, batas keputusan ketat untuk menekan FAR).
+# Model lama dapat diaktifkan kembali dengan variabel lingkungan SIGNACHECK_MODEL=lama.
+MODEL_REGISTRY = {
+    "v2": ("demo_model_files_v2", "48D9C3A7F52BB7379A37C997BD11F5D656312DC0FF46A8F38006C3FE673E7BD0"),
+    "lama": ("demo_model_files__6_", "48B77FEFF782E83EDBF161EF52E6106F0573471E828CFC41BEA573AEAA3CCD01"),
+}
+MODEL_KEY = os.environ.get("SIGNACHECK_MODEL", "v2")
+if MODEL_KEY not in MODEL_REGISTRY:
+    raise SystemExit(f"SIGNACHECK_MODEL tidak dikenal: {MODEL_KEY}. Pilihan: {list(MODEL_REGISTRY)}")
+EXPECTED_HASH = MODEL_REGISTRY[MODEL_KEY][1]
 EXPECTED_PREPROCESS_MODE = "binary"
 MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024  # 8 MB
 
@@ -41,10 +50,10 @@ logging.basicConfig(
 logger = logging.getLogger("signacheck")
 
 # ---------------------------------------------------------------------------
-# Path setup – gunakan HANYA demo_model_files__6_
+# Path setup – folder model sesuai MODEL_REGISTRY
 # ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_DIR = BASE_DIR / "demo_model_files__6_"
+MODEL_DIR = BASE_DIR / MODEL_REGISTRY[MODEL_KEY][0]
 CONFIG_PATH = MODEL_DIR / "config.json"
 MODEL_PATH = MODEL_DIR / "embedding_model.keras"
 
@@ -269,6 +278,10 @@ def model_info():
             "per_dataset": per_dataset,
         },
         "banyak_pembanding": banyak_pembanding,
+        "status_akhir": CONFIG.get("status_akhir", {}),
+        "data_latih": CONFIG.get("data_latih", {}),
+        "catatan_metrik": CONFIG.get("catatan_metrik"),
+        "model_key": MODEL_KEY,
         "model_hash": MODEL_HASH,
     }
 
@@ -405,7 +418,8 @@ def _occlusion_map(qry_arr: np.ndarray, ref_embs: np.ndarray, base_dist: float) 
     for i, (y, x) in enumerate(kotak):
         batch[i, y:y + ph, x:x + pw, 0] = 0.0
     emb = EMBEDDING_MODEL(batch, training=False).numpy()                      # (n, d)
-    d_occ = np.linalg.norm(emb[:, None, :] - ref_embs[None, :, :], axis=2).mean(axis=1)   # (n,)
+    d_all = np.linalg.norm(emb[:, None, :] - ref_embs[None, :, :], axis=2)                 # (n, k)
+    d_occ = d_all.min(axis=1) if CONFIG.get("skor_k") == "min" else d_all.mean(axis=1)    # (n,) sama dengan skor keputusan
     delta = base_dist - d_occ                                                  # >0: area ini memperbesar jarak
 
     heat = np.zeros((h, w), dtype=np.float32)
@@ -494,7 +508,10 @@ def _run_verification(
     qry_emb = EMBEDDING_MODEL(qry_batch, training=False).numpy()
 
     # --- 4. Embedding semua pembanding ---
-    threshold = float(CONFIG.get("threshold", 0.4825))
+    n_refs = len(refs_gray)
+    # Batas keputusan per jumlah pembanding (skor = jarak terdekat); fallback ke batas tunggal.
+    threshold = float(CONFIG.get("threshold_per_k", {}).get(str(n_refs), CONFIG["threshold"]))
+    use_min = CONFIG.get("skor_k") == "min"
     distances: List[float] = []
     ref_embs_list: List[np.ndarray] = []
     ref_steps_all: List[Dict[str, Any]] = []
@@ -518,7 +535,8 @@ def _run_verification(
         ref_quality_all.append(kualitas_foto.nilai_kualitas(r_gray, ref_steps_i.get("mask")))
 
     ref_embs = np.stack(ref_embs_list, axis=0)                  # (k, d)
-    distance = float(np.mean(distances))                        # rata-rata jarak ke k pembanding
+    # Skor keputusan: jarak TERDEKAT ke salah satu pembanding (config "skor_k": "min"), atau rata-rata (model lama)
+    distance = float(np.min(distances)) if use_min else float(np.mean(distances))
     is_genuine = bool(distance <= threshold)
     decision = "ASLI" if is_genuine else "PALSU"
 
@@ -537,10 +555,12 @@ def _run_verification(
                 pair_d.append(float(np.linalg.norm(ref_embs[a] - ref_embs[b])))
         ref_pair_mean = float(np.mean(pair_d))
         ref_pair_max = float(np.max(pair_d))
-        ref_inconsistent = bool(ref_pair_mean > threshold)
+        kons_cut = float(CONFIG.get("konsistensi_pembanding", {}).get(str(n_refs), threshold))
+        ref_inconsistent = bool(ref_pair_mean > kons_cut)
         ref_consistency = {
             "mean_pair_dist": round(ref_pair_mean, 4),
             "max_pair_dist": round(ref_pair_max, 4),
+            "cutoff": round(kons_cut, 4),
             "inconsistent": ref_inconsistent,
         }
         if ref_inconsistent:
@@ -605,6 +625,10 @@ def _run_verification(
                 "weight_model": round(float(coef[0]), 2),
                 "agrees_with_model": bool(fusion_decision == decision),
             }
+            # Kebijakan keamanan (menekan FAR): "ASLI" hanya diberikan bila model DAN ciri forensik sepakat.
+            # Bila tidak sepakat, hasilnya "BELUM YAKIN" (perlu ditinjau manusia), bukan lolos sebagai ASLI.
+            if decision == "ASLI" and fusion_decision == "PALSU":
+                status_reasons.append("Ciri forensik klasik menilai tanda tangan ini berbeda dari pembanding")
 
     # --- 6. Uji Goyang (jarak per pembanding, margin bertanda sesuai keputusan) ---
     shake_info = None
@@ -617,7 +641,7 @@ def _run_verification(
         emb_vars = EMBEDDING_MODEL(variants, training=False).numpy()                  # (n, d)
         # (n, k): jarak tiap varian ke tiap pembanding -> rata-rata per varian, sama seperti keputusan
         D = np.linalg.norm(emb_vars[:, None, :] - ref_embs[None, :, :], axis=2)
-        per_var = D.mean(axis=1)
+        per_var = D.min(axis=1) if use_min else D.mean(axis=1)
         mean_dist = float(np.mean(per_var))
         std_dist = float(np.std(per_var))
 
@@ -900,5 +924,5 @@ def verify_signature_json(req: VerifyRequest):
 
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    logger.info("[INFO] Menjalankan server SignaCheck di http://127.0.0.1:8000 ...")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    logger.info(f"[INFO] Menjalankan server SignaCheck di http://127.0.0.1:{os.environ.get('SIGNACHECK_PORT', '8000')} ...")
+    uvicorn.run(app, host="127.0.0.1", port=int(os.environ.get("SIGNACHECK_PORT", "8000")))

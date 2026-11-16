@@ -11,7 +11,7 @@ import io
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SAMPLES_DIR = BASE_DIR / "ttd_uji_sendiri"
-API_URL = "http://127.0.0.1:8000"
+API_URL = "http://127.0.0.1:" + os.environ.get("SIGNACHECK_PORT", "8000")
 
 def img_to_b64(path):
     with open(path, "rb") as f:
@@ -47,7 +47,8 @@ def run_tests():
     }
 
     # TC15: Konsistensi threshold
-    with open(BASE_DIR / "demo_model_files__6_" / "config.json", encoding="utf-8") as f:
+    folder = {"v2": "demo_model_files_v2", "lama": "demo_model_files__6_"}.get(data14.get("model_key"), "demo_model_files_v2")
+    with open(BASE_DIR / folder / "config.json", encoding="utf-8") as f:
         cfg = json.load(f)
     match_thr = abs(data14.get("threshold") - cfg.get("threshold")) < 1e-9
     results["TC15"] = {
@@ -211,7 +212,8 @@ def run_tests():
     }
 
     # TC21: Struktur respons baru (status, zona ragu dalam jarak, ringkasan forensik, peta penjelasan)
-    r21 = requests.post(f"{API_URL}/api/verify", json={"ref_images": [b64_1, b64_2, b64_3], "qry_image": b64_4})
+    # Query = tiruan: peta oklusi hanya muncul bila ada area yang mendorong model menilai "berbeda"
+    r21 = requests.post(f"{API_URL}/api/verify", json={"ref_images": [b64_1, b64_2, b64_3], "qry_image": b64_forg})
     d21 = r21.json() if r21.status_code == 200 else {}
     shake21 = d21.get("shake_test") or {}
     ok21 = (

@@ -60,9 +60,9 @@ Di halaman **Periksa Tanda Tangan**, sudah disediakan 3 tombol skenario instan y
 - Klik **"Periksa Tanda Tangan"**.
 
 ### 3. Cara Membaca Output Sistem
-- **Hijau (ASLI):** Rata-rata jarak $\le 0.4825$ (sangat mirip dengan pola pemilik asli).
-- **Kuning (BELUM YAKIN):** Rata-rata jarak antara $0.4825$ s.d. $0.5825$ (ada kemiripan visual namun melebihi batas keyakinan model; sarankan tambah pembanding).
-- **Merah (PALSU / BERBEDA):** Rata-rata jarak $> 0.5825$ (pola goresan berbeda signifikan).
+- **Hijau (ASLI):** Jarak terdekat ke pembanding $\le 0.337$ (untuk 1 pembanding; makin banyak pembanding batasnya makin ketat, lihat `config.json`) **dan** Uji Goyang stabil **dan** ciri forensik sepakat dengan model. ASLI sengaja sulit didapat agar tanda tangan palsu tidak lolos.
+- **Kuning (BELUM YAKIN):** Model menilai ASLI tetapi salah satu pemeriksaan lain tidak sepakat (Uji Goyang tidak stabil, ciri forensik berbeda, salinan persis, pembanding tidak konsisten). Tambah pembanding atau minta tinjauan manusia.
+- **Merah (PALSU / BERBEDA):** Jarak terdekat $> 0.337$ (untuk 1 pembanding).
 - **Tabel 8 Ciri Morfologi:** Menampilkan penjelasan pendamping bentuk fisik (luas area, keliling, kerapatan, aspek rasio, kemiringan sudut, dll.).
 
 ---
@@ -79,9 +79,15 @@ Proyek ini telah dikonsolidasi dan dirapikan:
  ├── 🐍 backend_api.py             # Server FastAPI (REST API, validasi file, logging)
  ├── 📓 ttd-pendeteksi.ipynb       # Notebook Jupyter utama riset, pelatihan, & evaluasi
  │
- ├── 📁 demo_model_files__6_/      # MODEL RESMI FINAL
+ ├── 📁 demo_model_files_v2/       # MODEL AKTIF (v2, ensemble; lihat docs/model_v2.md)
+ │    ├── embedding_model.keras    # SHA256: 48D9C3A7...
+ │    ├── config.json              # config AKTIF (target_far 0.08, batas k=1 0.337)
+ │    ├── config_target_far_0.08.json  # salinan config 0.08 (sama dengan config.json)
+ │    ├── config_target_far_0.05.json  # config paling ketat (0.05), disimpan untuk pembanding laporan
+ │
+ ├── 📁 demo_model_files__6_/      # Model LAMA (cadangan; aktifkan dengan SIGNACHECK_MODEL=lama)
  │    ├── embedding_model.keras    # Bobot model Siamese CNN (SHA256: 48B77FEF...)
- │    ├── config.json              # Konfigurasi resmi (threshold 0.4825, mode binary)
+ │    ├── config.json              # Konfigurasi lama (threshold 0.4825, mode binary)
  │    ├── preprocess.py            # Modul binarisasi Otsu & padding 128x256
  │    └── forensik.py              # Ekstraksi 8 ciri morfologi klasik
  │
@@ -102,7 +108,7 @@ Proyek ini telah dikonsolidasi dan dirapikan:
 | :--- | :--- |
 | **Berapa akurasi model?** | - Dataset D1 (CEDAR): **AUC 0.9368**, Akurasi **84.72%**, EER **15.06%**.<br>- Dataset D2 (Toloka): **AUC 0.8993**, Akurasi **81.47%**, EER **18.64%**.<br>- Dataset Mandiri (120 citra): **AUC 0.8927**, EER **19.23%**. |
 | **Kenapa pakai Siamese CNN?** | Karena bersifat **Writer-Independent**. Model mempelajari fungsi jarak kemiripan (*metric learning*), sehingga bisa memverifikasi tanda tangan orang baru tanpa perlu melatih ulang model. |
-| **Berapa threshold keputusannya?** | **`0.4825`** (tepatnya `0.482498...` dari hasil optimasi EER pada saat pelatihan). |
+| **Berapa threshold keputusannya?** | Model v2 (aktif): **`0.3369`** untuk 1 pembanding (0.309 / 0.295 / 0.283 / 0.277 untuk 2..5 pembanding), dipilih di data validasi agar tiruan mahir yang lolos <= 8% di tiap dataset (alternatif lebih ketat: target 0.05, `config_target_far_0.05.json`) (status ASLI akhir jauh lebih ketat, lihat docs/model_v2.md). Model lama: `0.4825` (titik EER; meloloskan 52.7% tiruan pada foto sendiri). Detail & angka v2: `docs/model_v2.md`. |
 | **Kenapa binarisasi (mode binary)?** | Agar kebal terhadap bayangan, variasi lampu ruangan, dan perbedaan kertas pada foto kamera HP. |
 | **Kenapa FAR tiruan mandiri tinggi (52.75%)?** | **(Jawab jujur!)** Karena sistem ini adalah *offline signature verification* (citra 2D statis). Sistem tidak memiliki sensor dinamika waktu nyata (seperti tekanan pena, kecepatan goresan, dan akselerasi), sehingga tiruan yang digambar sangat hati-hati berpeluang lolos secara visual. |
 | **Apa fungsi 8 ciri morfologi?** | Murni sebagai **penjelasan pendamping (*supporting context*)** visual bagi manusia untuk membandingkan geometri fisik tanda tangan; **tidak memengaruhi** kalkulasi jarak model neural network. |
