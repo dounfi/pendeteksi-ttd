@@ -1,0 +1,100 @@
+{
+  "threshold_dipakai": 0.4824983775615692,
+  "threshold_dari": "C:\\visual komputer cerda\\project deteksi ttd palsu\\demo_model_files__6_\\config.json",
+  "threshold_spesifikasi": 0.4824983775615692,
+  "threshold_match": true,
+  "preprocess_mode": "binary",
+  "n_pemilik": 3,
+  "n_gambar_total": 120,
+  "keseluruhan": {
+    "n_genuine_pairs": 570,
+    "n_forgery_pairs": 1200,
+    "n_impostor_pairs": 1200,
+    "FRR": 0.092982,
+    "FAR_tiruan": 0.5275,
+    "FAR_orang_lain": 0.039167,
+    "AUC": 0.892682,
+    "EER": 0.192325
+  },
+  "per_pemilik": {
+    "1": {
+      "n_genuine_pairs": 190,
+      "n_forgery_pairs": 400,
+      "n_impostor_pairs": 400,
+      "FRR": 0.015789,
+      "FAR_tiruan": 0.6675,
+      "FAR_orang_lain": 0.0375,
+      "AUC": 0.909941,
+      "EER": 0.176349,
+      "genuine_dist_mean": 0.235202,
+      "genuine_dist_std": 0.093622,
+      "forgery_dist_mean": 0.457935,
+      "forgery_dist_std": 0.243849
+    },
+    "2": {
+      "n_genuine_pairs": 190,
+      "n_forgery_pairs": 400,
+      "n_impostor_pairs": 400,
+      "FRR": 0.215789,
+      "FAR_tiruan": 0.43,
+      "FAR_orang_lain": 0.065,
+      "AUC": 0.831388,
+      "EER": 0.239803,
+      "genuine_dist_mean": 0.37671,
+      "genuine_dist_std": 0.159674,
+      "forgery_dist_mean": 0.544844,
+      "forgery_dist_std": 0.193459
+    },
+    "3": {
+      "n_genuine_pairs": 190,
+      "n_forgery_pairs": 400,
+      "n_impostor_pairs": 400,
+      "FRR": 0.047368,
+      "FAR_tiruan": 0.485,
+      "FAR_orang_lain": 0.015,
+      "AUC": 0.946454,
+      "EER": 0.137171,
+      "genuine_dist_mean": 0.301176,
+      "genuine_dist_std": 0.09123,
+      "forgery_dist_mean": 0.536346,
+      "forgery_dist_std": 0.185033
+    }
+  },
+  "banyak_pembanding": {
+    "1": {
+      "auc_mean": 0.929129,
+      "auc_std": 0.027474,
+      "eer_mean": 0.144615,
+      "eer_std": 0.043023,
+      "n_trials": 30
+    },
+    "2": {
+      "auc_mean": 0.94013,
+      "auc_std": 0.010297,
+      "eer_mean": 0.121636,
+      "eer_std": 0.01815,
+      "n_trials": 30
+    },
+    "3": {
+      "auc_mean": 0.942923,
+      "auc_std": 0.011719,
+      "eer_mean": 0.114368,
+      "eer_std": 0.02454,
+      "n_trials": 30
+    },
+    "5": {
+      "auc_mean": 0.946959,
+      "auc_std": 0.006066,
+      "eer_mean": 0.10963,
+      "eer_std": 0.015791,
+      "n_trials": 30
+    }
+  },
+  "target_validasi": {
+    "FRR": "~9.3% (±0.3%)",
+    "FAR_tiruan": "~52.8% (±0.3%)",
+    "FAR_orang_lain": "~4.2% (±1.5%)",
+    "AUC": "~0.892 (±0.01)",
+    "EER": "~19.2% (±1.5%)"
+  }
+}
