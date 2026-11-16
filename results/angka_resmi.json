@@ -1,0 +1,231 @@
+{
+  "dibuat_pada": "2026-11-16T02:40:12.074660+00:00",
+  "sumber_config": "C:\\visual komputer cerda\\project deteksi ttd palsu\\demo_model_files__6_\\config.json",
+  "model": "gabungan D1+D2",
+  "tensorflow_version": "2.20.0",
+  "keras_version": "3.13.2",
+  "preprocess_mode": "binary",
+  "threshold": 0.4824983775615692,
+  "ragu_z": 1.7437371015548706,
+  "ragu_margin": 0.10673275589942932,
+  "per_dataset": {
+    "D1": {
+      "auc": 0.9368135802469135,
+      "eer": 0.15055555555555555,
+      "accuracy": 0.8472222222222222,
+      "precision": 0.8134403209628887,
+      "recall": 0.9011111111111111,
+      "f1": 0.8550342646283605,
+      "FRR": 0.20666666666666667,
+      "FAR": 0.09888888888888889,
+      "FAR_skilled_forgery": 0.18,
+      "FAR_random_forgery": 0.017777777777777778
+    },
+    "D2": {
+      "auc": 0.8993211853647276,
+      "eer": 0.1864035087719298,
+      "accuracy": 0.8146929824561403,
+      "precision": 0.8153846153846154,
+      "recall": 0.8135964912280702,
+      "f1": 0.814489571899012,
+      "FRR": 0.18421052631578946,
+      "FAR": 0.18640350877192982,
+      "FAR_skilled_forgery": null,
+      "FAR_random_forgery": 0.18640350877192982
+    }
+  },
+  "fusi": [
+    {
+      "dataset": "D1",
+      "skenario": "model saja",
+      "auc": 0.9368,
+      "eer": 0.1506,
+      "accuracy": 0.8472,
+      "FAR": 0.0989,
+      "FRR": 0.2067
+    },
+    {
+      "dataset": "D1",
+      "skenario": "ciri klasik saja",
+      "auc": 0.8688,
+      "eer": 0.2044,
+      "accuracy": 0.7944,
+      "FAR": 0.36,
+      "FRR": 0.0511
+    },
+    {
+      "dataset": "D1",
+      "skenario": "fusi (model + ciri)",
+      "auc": 0.9401,
+      "eer": 0.1472,
+      "accuracy": 0.8583,
+      "FAR": 0.1122,
+      "FRR": 0.1711
+    },
+    {
+      "dataset": "D2",
+      "skenario": "model saja",
+      "auc": 0.8993,
+      "eer": 0.1864,
+      "accuracy": 0.8147,
+      "FAR": 0.1864,
+      "FRR": 0.1842
+    },
+    {
+      "dataset": "D2",
+      "skenario": "ciri klasik saja",
+      "auc": 0.7945,
+      "eer": 0.2823,
+      "accuracy": 0.7023,
+      "FAR": 0.1064,
+      "FRR": 0.489
+    },
+    {
+      "dataset": "D2",
+      "skenario": "fusi (model + ciri)",
+      "auc": 0.8958,
+      "eer": 0.1886,
+      "accuracy": 0.8191,
+      "FAR": 0.1513,
+      "FRR": 0.2105
+    }
+  ],
+  "banyak_pembanding_D1": {
+    "1": {
+      "auc": 0.938068889117301,
+      "auc_std": 0.011170231634628797,
+      "eer": 0.1468097954568815,
+      "eer_std": 0.024234116351908107
+    },
+    "2": {
+      "auc": 0.949035951300444,
+      "auc_std": 0.009006437358855082,
+      "eer": 0.13360507246376813,
+      "eer_std": 0.022188115928389752
+    },
+    "3": {
+      "auc": 0.9498954863152393,
+      "auc_std": 0.005189517169897962,
+      "eer": 0.1354056437389771,
+      "eer_std": 0.009173089420790505
+    },
+    "5": {
+      "auc": 0.9551694697553531,
+      "auc_std": 0.0010848320276342124,
+      "eer": 0.12261151910784712,
+      "eer_std": 0.008093823421978386
+    }
+  },
+  "banyak_pembanding_D2": {
+    "1": {
+      "auc": 0.8991431179015684,
+      "auc_std": 0.014443376797347297,
+      "eer": 0.1864098837209302,
+      "eer_std": 0.020005275593751173
+    },
+    "2": {
+      "auc": 0.9220462978579862,
+      "auc_std": 0.007174037141661053,
+      "eer": 0.16193181818181818,
+      "eer_std": 0.015607860814147239
+    },
+    "3": {
+      "auc": 0.926112402681661,
+      "auc_std": 0.016628643095552533,
+      "eer": 0.16452205882352944,
+      "eer_std": 0.022719130688066688
+    },
+    "5": {
+      "auc": 0.9417,
+      "auc_std": 0.008895785518997194,
+      "eer": 0.12625,
+      "eer_std": 0.013863170633011781
+    }
+  },
+  "D3_uji_sendiri": {
+    "n_genuine_pairs": 570,
+    "n_forgery_pairs": 1200,
+    "n_impostor_pairs": 1200,
+    "FRR": 0.092982,
+    "FAR_tiruan": 0.5275,
+    "FAR_orang_lain": 0.039167,
+    "AUC": 0.892682,
+    "EER": 0.192325
+  },
+  "D3_per_pemilik": {
+    "1": {
+      "n_genuine_pairs": 190,
+      "n_forgery_pairs": 400,
+      "n_impostor_pairs": 400,
+      "FRR": 0.015789,
+      "FAR_tiruan": 0.6675,
+      "FAR_orang_lain": 0.0375,
+      "AUC": 0.909941,
+      "EER": 0.176349,
+      "genuine_dist_mean": 0.235202,
+      "genuine_dist_std": 0.093622,
+      "forgery_dist_mean": 0.457935,
+      "forgery_dist_std": 0.243849
+    },
+    "2": {
+      "n_genuine_pairs": 190,
+      "n_forgery_pairs": 400,
+      "n_impostor_pairs": 400,
+      "FRR": 0.215789,
+      "FAR_tiruan": 0.43,
+      "FAR_orang_lain": 0.065,
+      "AUC": 0.831388,
+      "EER": 0.239803,
+      "genuine_dist_mean": 0.37671,
+      "genuine_dist_std": 0.159674,
+      "forgery_dist_mean": 0.544844,
+      "forgery_dist_std": 0.193459
+    },
+    "3": {
+      "n_genuine_pairs": 190,
+      "n_forgery_pairs": 400,
+      "n_impostor_pairs": 400,
+      "FRR": 0.047368,
+      "FAR_tiruan": 0.485,
+      "FAR_orang_lain": 0.015,
+      "AUC": 0.946454,
+      "EER": 0.137171,
+      "genuine_dist_mean": 0.301176,
+      "genuine_dist_std": 0.09123,
+      "forgery_dist_mean": 0.536346,
+      "forgery_dist_std": 0.185033
+    }
+  },
+  "D3_banyak_pembanding": {
+    "1": {
+      "auc_mean": 0.929129,
+      "auc_std": 0.027474,
+      "eer_mean": 0.144615,
+      "eer_std": 0.043023,
+      "n_trials": 30
+    },
+    "2": {
+      "auc_mean": 0.94013,
+      "auc_std": 0.010297,
+      "eer_mean": 0.121636,
+      "eer_std": 0.01815,
+      "n_trials": 30
+    },
+    "3": {
+      "auc_mean": 0.942923,
+      "auc_std": 0.011719,
+      "eer_mean": 0.114368,
+      "eer_std": 0.02454,
+      "n_trials": 30
+    },
+    "5": {
+      "auc_mean": 0.946959,
+      "auc_std": 0.006066,
+      "eer_mean": 0.10963,
+      "eer_std": 0.015791,
+      "n_trials": 30
+    }
+  },
+  "D3_threshold_dipakai": 0.4824983775615692,
+  "D3_threshold_match": true
+}

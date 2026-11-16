@@ -1,0 +1,540 @@
+PENJELASAN ALUR KERJA
+Sistem SignaCheck - Pemeriksa Keaslian Tanda Tangan
+=====================================================================
+
+Dokumen ini menjelaskan, dengan bahasa sederhana tetapi cukup rinci,
+bagaimana sistem bekerja dari awal sampai akhir: alur pengguna, cara kerja
+backend, dan cara model (kecerdasan buatan) dibuat dan dipakai.
+
+Isi:
+  1. Gambaran besar
+  2. Alur kerja dari sisi pengguna
+  3. Cara kerja backend, langkah demi langkah
+  4. Pengolahan citra (membersihkan gambar sebelum dinilai)
+  5. Pemodelan (otak dari sistem)
+  6. Cara model mengambil keputusan
+  7. Uji Goyang (seberapa yakin sistem)
+  8. Penjelasan hasil (Explainable AI)
+  9. Pemeriksaan kualitas foto (Adaptive Kamera)
+ 10. Seberapa akurat sistem ini
+ 11. Batasan yang harus diketahui
+ 12. Peta file proyek
+ 13. Daftar istilah
+
+
+=====================================================================
+1. GAMBARAN BESAR
+=====================================================================
+
+Tujuan: menjawab pertanyaan "tanda tangan ini asli atau tidak?"
+
+Caranya: pengguna memberi
+  - 1 sampai 5 tanda tangan yang PASTI asli (disebut "pembanding"), dan
+  - 1 tanda tangan yang ingin diperiksa.
+
+Sistem lalu mengukur seberapa MIRIP tanda tangan yang diperiksa dengan
+para pembanding. Makin mirip, makin mungkin asli.
+
+Sistem terdiri dari tiga bagian:
+
+  FRONTEND (tampilan di browser)
+      Tempat pengguna mengunggah/memotret/menggambar tanda tangan dan
+      melihat hasil. Dibuat dengan React. Berjalan di alamat
+      http://localhost:5173
+
+  BACKEND (server di belakang layar)
+      Program Python (FastAPI) yang menerima gambar, mengolahnya,
+      menjalankan model, lalu mengirim hasil. Berjalan di alamat
+      http://127.0.0.1:8000. File utamanya: backend_api.py
+
+  MODEL (otak AI)
+      Jaringan saraf tiruan (Siamese CNN) yang sudah dilatih. Tersimpan
+      di demo_model_files__6_/embedding_model.keras
+
+Penting: hasil sistem adalah INDIKASI KECURIGAAN, bukan bukti hukum.
+
+
+=====================================================================
+2. ALUR KERJA DARI SISI PENGGUNA
+=====================================================================
+
+Langkah 1 - Siapkan tanda tangan pembanding (1 sampai 5)
+   Ada empat cara memasukkannya:
+     a. Unggah  : pilih file gambar (boleh banyak file sekaligus).
+     b. Kamera  : memotret kertas bertanda tangan. Hasil foto dipotong
+                  sesuai kotak bidik di layar.
+     c. Pad layar : menggambar tanda tangan dengan mouse atau jari.
+     d. Udara   : menulis di udara, gerakan tangan dilacak kamera.
+   Makin banyak pembanding, makin andal hasilnya (lihat bagian 10).
+
+Langkah 2 - Siapkan tanda tangan yang diperiksa
+   Satu gambar saja, dengan empat cara yang sama.
+
+Langkah 3 - Tekan "PERIKSA TANDA TANGAN"
+   Frontend mengirim semua gambar ke backend. Tunggu sekitar 1-2 detik.
+
+Langkah 4 - Baca hasil
+   Ada tiga kemungkinan status:
+     ASLI         : tanda tangan cukup mirip dengan pembanding.
+     PALSU        : tanda tangan cukup berbeda (ditulis "kemungkinan
+                    palsu").
+     BELUM YAKIN  : sistem ragu, lihat alasan yang ditampilkan.
+   Di bawahnya ada: bar jarak, indeks kedekatan, peringatan kualitas,
+   gambar setelah diolah, peta bagian yang membedakan, dan delapan ciri
+   tanda tangan.
+
+
+=====================================================================
+3. CARA KERJA BACKEND, LANGKAH DEMI LANGKAH
+=====================================================================
+
+Saat server dinyalakan (sekali di awal):
+  a. Menghitung "sidik jari" (hash SHA-256) file model dan membandingkan
+     dengan nilai yang diharapkan. Kalau berbeda, server menolak jalan.
+     Tujuannya: mencegah tidak sengaja memakai model yang salah.
+  b. Membaca config.json (berisi batas keputusan, angka evaluasi, dsb).
+  c. Memuat model ke memori.
+
+Saat pengguna menekan tombol periksa (endpoint POST /api/verify):
+
+  1. VALIDASI INPUT
+     - Minimal 1 dan maksimal 5 pembanding.
+     - Setiap file maksimal 8 MB dan harus benar-benar gambar.
+     - Gambar harus punya kontras (bukan kertas kosong polos).
+     Kalau gagal, backend menjawab kode 400 dengan pesan yang jelas.
+
+  2. BUANG PEMBANDING KEMBAR
+     Kalau ada file yang sama persis dimasukkan berkali-kali, hanya satu
+     yang dipakai (tidak menambah informasi) dan pengguna diberi
+     peringatan.
+
+  3. PENGOLAHAN CITRA
+     Setiap gambar dibersihkan dan diseragamkan (dijelaskan di bagian 4).
+     Kalau setelah dibersihkan ternyata tidak ada goresan tanda tangan,
+     backend menolak (kode 422).
+
+  4. PENGUKURAN KUALITAS
+     Menilai apakah foto buram, gelap, bayangan, dsb. Hasilnya hanya
+     peringatan (bagian 9).
+
+  5. MENGUBAH GAMBAR MENJADI ANGKA (EMBEDDING)
+     Model mengubah tiap gambar menjadi 64 angka yang mewakili "ciri
+     tanda tangan itu" (bagian 5).
+
+  6. MENGHITUNG JARAK
+     Jarak antara angka tanda tangan yang diperiksa dengan tiap
+     pembanding, lalu dirata-ratakan.
+
+  7. KEPUTUSAN
+     Jarak rata-rata dibandingkan dengan batas keputusan (bagian 6).
+
+  8. PEMERIKSAAN TAMBAHAN
+     - Apakah pembanding konsisten satu sama lain?
+     - Apakah gambar yang diperiksa terlalu mirip (kemungkinan salinan)?
+
+  9. DELAPAN CIRI KLASIK + FUSI
+     Menghitung ciri seperti kemiringan dan ketebalan (bagian 8).
+
+ 10. UJI GOYANG
+     Mengecek stabilitas keputusan (bagian 7).
+
+ 11. PETA PENJELASAN
+     Menandai bagian tanda tangan yang paling membuat model menilai
+     "berbeda" (bagian 8).
+
+ 12. STATUS AKHIR
+     ASLI / PALSU / BELUM YAKIN, lalu semua hasil dikirim ke frontend
+     dalam satu paket JSON.
+
+Endpoint lain:
+  GET  /api/health        : cek server hidup, hash model, batas keputusan.
+  GET  /api/model-info    : angka evaluasi model untuk panel "Info Model".
+  GET  /api/samples dan /api/sample-image/{nama} : contoh siap pakai.
+  POST /api/verify-json   : versi lama, kini memakai logika yang sama.
+
+Keamanan dasar: CORS hanya mengizinkan alamat frontend lokal, nama file
+contoh diperiksa agar tidak bisa keluar folder, dan pesan error tidak
+membocorkan lokasi file di server.
+
+
+=====================================================================
+4. PENGOLAHAN CITRA (file: demo_model_files__6_/preprocess.py)
+=====================================================================
+
+Tujuan: apa pun jenis fotonya (scan, foto HP, gambar layar), hasil
+akhirnya berbentuk sama supaya model tidak bingung.
+
+Mode yang dipakai sistem adalah "binary" (hitam-putih murni). Langkahnya:
+
+  1. Ubah ke abu-abu (hitam sampai putih). Gambar transparan diberi latar
+     putih lebih dulu.
+  2. Kecilkan bila terlalu besar (maksimal sisi terpanjang 1600 piksel).
+  3. RATAKAN CAHAYA. Gambar dibagi dengan "gambar latarnya" (versi sangat
+     buram dari dirinya sendiri). Efeknya: bayangan dan kertas yang tidak
+     rata hilang. Ini inti dari kemampuan sistem menghadapi foto HP.
+  4. Haluskan sedikit (blur 3x3) lalu pisahkan tinta dari kertas dengan
+     metode Otsu, yaitu cara otomatis memilih batas gelap-terang terbaik
+     untuk setiap gambar. Hasilnya: tinta = putih, kertas = hitam.
+  5. Buang bintik debu kecil (komponen yang luasnya kurang dari 10
+     piksel).
+  6. Potong (crop) tepat di sekeliling tanda tangan dengan sedikit
+     margin.
+  7. Letakkan di kanvas hitam berukuran 128 x 256 piksel tanpa merusak
+     perbandingan lebar-tinggi, di tengah.
+  8. Skala nilai piksel menjadi 0 sampai 1.
+
+Hasil akhir selalu: gambar 128 x 256, latar 0 (hitam), goresan mendekati
+1 (terang). File yang sama dipakai saat pelatihan di notebook dan saat
+aplikasi berjalan, supaya model melihat data dengan cara yang sama.
+
+
+=====================================================================
+5. PEMODELAN (OTAK DARI SISTEM)
+=====================================================================
+
+5.1 Ide dasar: Siamese Network ("jaringan kembar")
+--------------------------------------------------
+Model TIDAK menebak "asli" atau "palsu" secara langsung. Model hanya
+belajar satu hal: mengubah gambar tanda tangan menjadi 64 angka
+(disebut EMBEDDING) sedemikian rupa sehingga:
+
+   - dua tanda tangan dari orang yang sama menghasilkan angka yang DEKAT,
+   - tanda tangan palsu atau milik orang lain menghasilkan angka yang
+     JAUH.
+
+Analogi: setiap tanda tangan diberi "koordinat" di sebuah peta. Tanda
+tangan asli milik satu orang mengumpul di satu area. Pemalsu biasanya
+jatuh agak jauh dari area itu.
+
+Disebut "kembar" karena saat dilatih, dua gambar dimasukkan sekaligus ke
+dua jaringan yang IDENTIK (bobot yang sama), lalu jarak keduanya diukur.
+Saat dipakai, cukup satu jaringan yang dijalankan berulang kali.
+
+Keuntungan cara ini: sistem bisa memeriksa tanda tangan orang yang TIDAK
+pernah dilihat saat pelatihan. Cukup beri contoh aslinya sebagai
+pembanding. Tidak perlu melatih ulang untuk setiap orang baru.
+
+5.2 Isi jaringan
+----------------
+Input  : gambar 128 x 256 (hasil pengolahan citra).
+Isi    : empat blok yang berulang. Tiap blok berisi
+         Konvolusi -> Normalisasi -> Aktivasi -> Pengecilan (max pooling),
+         dengan jumlah filter 32, 64, 128, lalu 256.
+         Lalu: Flatten -> Dropout -> Dense 128 -> Dense 64.
+Output : 64 angka, lalu DINORMALKAN sehingga panjang vektornya selalu 1
+         (UnitNormalization).
+Ukuran : sekitar 4,6 juta parameter (bobot yang dipelajari).
+
+Penjelasan singkat:
+  - Lapisan konvolusi bertindak seperti "kaca pembesar" yang mencari pola
+    goresan: lengkungan, sudut, garis, lalu bentuk yang makin rumit.
+  - Max pooling mengecilkan gambar sambil menjaga pola terpenting.
+  - Dropout membuang sebagian unit secara acak saat pelatihan supaya
+    model tidak sekadar menghafal.
+  - Normalisasi akhir membuat semua jarak berada di rentang tetap 0
+    sampai 2. Itu sebabnya batas keputusan bisa berupa satu angka kecil
+    seperti 0,48.
+
+5.3 Cara model belajar (pelatihan di notebook ttd-pendeteksi.ipynb)
+--------------------------------------------------------------------
+Data:
+  - Dataset 1 (D1): CEDAR, 55 orang. Memuat tanda tangan asli dan
+    tanda tangan tiruan mahir (skilled forgery).
+  - Dataset 2 (D2): Toloka, 120 orang. Tidak memuat tiruan mahir; "palsu"
+    di sini berarti tanda tangan milik orang lain.
+  (Nama dataset mengikuti keterangan di antarmuka dan isi config.json.)
+
+Pembagian data:
+  Data dibagi BERDASARKAN ORANG: 70% orang untuk latih, 15% validasi,
+  15% uji. Orang di data uji benar-benar belum pernah dilihat model.
+  Ini cara yang jujur untuk mengukur kemampuan pada orang baru.
+
+Pasangan latih:
+  Model dilatih dengan PASANGAN gambar yang diberi label:
+    - pasangan "mirip" : dua tanda tangan asli orang yang sama.
+    - pasangan "beda"  : asli vs tiruan mahir (skilled forgery), atau
+                         asli vs tanda tangan orang lain (random
+                         forgery).
+
+Fungsi kesalahan: contrastive loss (margin = 1,0)
+  - Pasangan mirip   : model dihukum bila jaraknya besar -> jarak ditarik
+                       mengecil.
+  - Pasangan berbeda : model dihukum bila jaraknya kurang dari margin 1,0
+                       -> jarak didorong menjauh.
+  Setelah ribuan pasangan, jaringan belajar menaruh tanda tangan asli
+  yang sama berdekatan dan yang berbeda berjauhan.
+
+Pengaturan lain:
+  - Optimizer Adam, learning rate 0,0003, ukuran batch 64.
+  - Paling banyak 8 putaran (epoch); berhenti lebih awal bila hasil di
+    validasi tidak membaik lagi.
+  - Augmentasi (variasi acak saat latihan, antara lain rotasi kecil)
+    supaya model tahan terhadap sedikit pergeseran.
+  - Angka acak dikunci (seed 42) agar hasil bisa diulang.
+
+Hasil pelatihan disimpan menjadi embedding_model.keras. Hanya bagian
+"pengubah gambar menjadi 64 angka" yang disimpan; bagian pasangan hanya
+dipakai saat latihan.
+
+5.4 Batas keputusan (threshold)
+-------------------------------
+Angka 0,4825 (tersimpan di config.json) adalah batas jarak: kurang dari
+atau sama dengan batas -> dianggap asli. Nilai ini ditetapkan sekali di
+notebook, lalu dipakai tetap di semua pengujian dan aplikasi.
+
+
+=====================================================================
+6. CARA MODEL MENGAMBIL KEPUTUSAN
+=====================================================================
+
+Contoh dengan 3 pembanding:
+
+   jarak ke pembanding 1 = 0,32
+   jarak ke pembanding 2 = 0,28
+   jarak ke pembanding 3 = 0,36
+   jarak rata-rata       = 0,32
+
+   0,32 <= 0,4825  ->  keputusan model: ASLI
+
+Mengapa dirata-ratakan? Satu pembanding bisa kebetulan kurang mewakili
+(misal sedang tergesa-gesa saat menulis). Rata-rata dari beberapa
+pembanding lebih stabil. Hasil uji menunjukkan makin banyak pembanding,
+makin kecil tingkat kesalahannya (bagian 10).
+
+"Indeks kedekatan" (persen) yang tampil di layar dihitung dari jarak:
+tepat di batas keputusan = 50%. Angka ini BUKAN peluang statistik, hanya
+cara menampilkan jarak agar mudah dibaca.
+
+Status akhir:
+  - Kalau tidak ada masalah: status = keputusan model (ASLI / PALSU).
+  - Status berubah menjadi BELUM YAKIN bila salah satu terjadi:
+      * Uji Goyang menunjukkan keputusan tidak stabil, atau
+      * pembanding tidak konsisten satu sama lain, atau
+      * tanda tangan yang diperiksa identik/hampir identik dengan
+        pembanding (kemungkinan salinan; tanda tangan asli yang ditulis
+        ulang tidak pernah sama persis).
+  - Alasannya ditampilkan di layar.
+
+
+=====================================================================
+7. UJI GOYANG (SEBERAPA YAKIN SISTEM)
+=====================================================================
+
+Masalah: kalau jarak hanya sedikit di bawah atau di atas batas, hasil
+bisa berubah hanya karena gambar bergeser satu-dua piksel.
+
+Cara kerja:
+  1. Dari gambar yang diperiksa dibuat 6 versi "digoyang": sedikit
+     digeser (maks. 4%), diputar (maks. 3 derajat), dan diperbesar atau
+     diperkecil (maks. 5%).
+  2. Tiap versi dinilai oleh model, jaraknya dirata-ratakan, lalu
+     dihitung sebarannya (seberapa beragam hasilnya).
+  3. Dihitung z-score = (jarak varian ke batas, searah dengan keputusan)
+     dibagi sebaran.
+        z besar -> hasil stabil, jauh dari perbatasan.
+        z kecil -> hasil dekat perbatasan atau berubah-ubah.
+  4. Bila z >= 1,74 -> "Sangat yakin / stabil".
+     Bila kurang -> "Ragu / perbatasan", dan status menjadi BELUM YAKIN.
+  5. Dilaporkan juga berapa dari 6 varian yang membalik keputusan.
+
+Catatan: ambang 1,74 dikalibrasi untuk 1 pembanding. Untuk 2-5
+pembanding, anggap sebagai indikasi.
+
+
+=====================================================================
+8. PENJELASAN HASIL (EXPLAINABLE AI)
+=====================================================================
+
+Ada dua penjelasan yang BERBEDA. Penting untuk tidak tertukar.
+
+8.1 Peta "bagian yang paling membedakan" (menjelaskan MODEL)
+-------------------------------------------------------------
+Cara kerja (disebut metode oklusi):
+  - Sebuah jendela kecil (32 x 32 piksel) digeser ke seluruh gambar.
+  - Pada tiap posisi, bagian itu "ditutup" lalu jarak ke pembanding
+    dihitung ulang.
+  - Bila jarak TURUN setelah bagian itu ditutup, berarti bagian itu ikut
+    membuat model menganggap "berbeda".
+  Hasilnya digambar sebagai sorotan merah di atas tanda tangan.
+  Ini perkiraan, bukan bukti pasti.
+
+8.2 Delapan ciri klasik (penjelas PENDAMPING)
+----------------------------------------------
+(file: demo_model_files__6_/forensik.py)
+Dihitung dengan pengolahan citra biasa, tanpa AI:
+  1. Bentuk (perbandingan lebar dan tinggi)
+  2. Kepadatan tinta
+  3. Kemiringan umum
+  4. Ketebalan goresan
+  5. Jumlah bagian terpisah (berapa kali pena diangkat)
+  6. Panjang total goresan
+  7. Letak pusat tinta kiri-kanan
+  8. Letak pusat tinta atas-bawah
+Setiap ciri dibandingkan dengan pembanding lalu diberi label:
+  mirip / agak beda / beda.
+Batasnya diambil dari data: "mirip" bila selisihnya masih wajar untuk
+pasangan tanda tangan asli.
+
+Penting: delapan ciri ini BUKAN alasan langsung keputusan model. Model
+memutuskan dari 64 angka embedding. Karena itu, pasangan asli pun lazim
+punya beberapa ciri yang tampak berbeda; yang penting adalah
+gambaran keseluruhannya ("3 dari 8 ciri mirip", dst).
+
+8.3 Fusi (pembanding tambahan)
+------------------------------
+Jarak dari model digabung dengan selisih delapan ciri klasik memakai
+rumus pembobotan sederhana (bobot tiap ciri dan batasnya tersimpan di
+config.json, bagian "fusi"; jarak dari model mendapat bobot paling besar).
+Hasilnya "keputusan fusi" yang
+ditampilkan sebagai pembanding tambahan. Fusi TIDAK mengubah keputusan
+utama; bila fusi berbeda dari model, layar memberi catatan agar
+ditinjau lebih hati-hati. Pada data uji, perbaikan akurasi dari fusi
+kecil.
+
+
+=====================================================================
+9. PEMERIKSAAN KUALITAS FOTO (ADAPTIVE KAMERA)
+=====================================================================
+
+Ada tiga lapis:
+
+Lapis 1 - Di kamera (frontend, saat memotret)
+  - Memakai kamera belakang bila ada; fokus dan eksposur otomatis bila
+    didukung perangkat.
+  - Pratinjau memeriksa cahaya dan fokus tiap sekitar 0,8 detik dan
+    memberi saran ("terlalu gelap", "kurang fokus", dst).
+  - Hasil jepretan dipotong sesuai kotak bidik, jadi meja dan tangan
+    tidak ikut tersimpan.
+
+Lapis 2 - Di pengolahan citra (backend)
+  - Perataan cahaya dan pemisahan tinta otomatis (bagian 4) membuat
+    sistem tahan terhadap bayangan dan cahaya tidak rata.
+
+Lapis 3 - Penilaian kualitas (file: kualitas_foto.py)
+  Mengukur dan memberi PERINGATAN (tidak menolak) untuk:
+    - gambar buram,
+    - terlalu gelap / terlalu terang,
+    - kontras tinta rendah,
+    - tinta terlalu sedikit atau terlalu luas,
+    - benda gelap menempel di tepi (tepi kertas, jari),
+    - pencahayaan tidak merata (bayangan).
+  Ambangnya diuji pada 120 scan bersih (hanya 2 yang diperingatkan) dan
+  pada gambar yang sengaja dirusak (bayangan, foto HP, buram:
+  hampir semuanya terdeteksi).
+
+Catatan: modul ini sengaja TIDAK mengubah gambar, karena mengubah input
+akan membuat angka evaluasi dan batas keputusan tidak berlaku lagi.
+
+
+=====================================================================
+10. SEBERAPA AKURAT SISTEM INI
+=====================================================================
+
+Istilah:
+  FRR = tanda tangan ASLI yang salah ditolak (dianggap palsu).
+  FAR = tanda tangan PALSU yang salah diterima (dianggap asli).
+  EER = titik ketika FAR dan FRR sama; makin kecil makin baik.
+  AUC = kemampuan memisahkan asli dan palsu; 1,0 sempurna, 0,5 sama
+        dengan menebak.
+
+Data uji resmi (orang yang belum pernah dilihat model):
+  D1 (CEDAR)  : AUC 0,937 ; EER 15,1% ; akurasi 84,7%
+                FAR tiruan mahir 18,0% ; FAR tanda tangan orang lain 1,8%
+  D2 (Toloka) : AUC 0,899 ; EER 18,6% ; akurasi 81,5%
+
+Data milik sendiri (D3, 120 gambar dari 3 orang):
+  FRR 9,3%
+  FAR tiruan 52,8%  <-- tinggi: peniru yang rajin latihan masih sering
+                        lolos
+  FAR tanda tangan orang lain 3,9%
+  AUC 0,893 ; EER 19,2%
+
+Pengaruh jumlah pembanding (EER D1):
+  1 pembanding : 14,7%
+  2 pembanding : 13,4%
+  3 pembanding : 13,5%
+  5 pembanding : 12,3%
+Kesimpulan: tambah pembanding membantu, sekitar 3-5 sudah baik.
+
+Sumber angka: demo_model_files__6_/config.json, docs/angka_resmi.md.
+
+
+=====================================================================
+11. BATASAN YANG HARUS DIKETAHUI
+=====================================================================
+
+  - Sistem lebih baik menolak tanda tangan milik orang lain daripada
+    menolak peniru yang terampil. Pada data sendiri, lebih dari separuh
+    tiruan mahir masih dinilai asli. Jangan dijadikan satu-satunya dasar
+    keputusan penting.
+  - Hasil adalah indikasi kecurigaan, bukan bukti hukum.
+  - Tanda tangan digambar di layar atau di udara berbeda dengan tanda
+    tangan di atas kertas (tidak ada tekanan pena, garis seragam). Angka
+    akurasi di atas diukur pada tanda tangan di kertas.
+  - Setiap orang menulis agak berbeda tiap waktu. Sebagian tanda tangan
+    asli akan ditolak (FRR); karena itu ada status BELUM YAKIN.
+  - Batas keputusan satu untuk semua orang. Orang yang tanda tangannya
+    sangat bervariasi lebih sering salah ditolak.
+  - Penilaian kualitas foto memakai ambang heuristik yang diuji pada
+    gangguan buatan, belum pada foto HP asli.
+
+
+=====================================================================
+12. PETA FILE PROYEK
+=====================================================================
+
+  backend_api.py                  Server utama (alur di bagian 3)
+  kualitas_foto.py                Penilaian kualitas foto (bagian 9)
+  demo_model_files__6_/
+      embedding_model.keras       Model terlatih (bagian 5)
+      config.json                 Batas keputusan, angka evaluasi, dll
+      preprocess.py               Pengolahan citra (bagian 4)
+      forensik.py                 Delapan ciri klasik dan fusi (bagian 8)
+      gangguan.py                 Gangguan buatan dan Uji Goyang (7)
+  ttd-pendeteksi.ipynb            Notebook pelatihan model
+  frontend v2/                    Tampilan web (React)
+      src/routes/periksa.tsx      Halaman pemeriksaan dan hasil
+      src/components/SignatureInputModal.tsx   Unggah, kamera, pad, udara
+  scripts/
+      test_system.py              Uji otomatis API (20 kasus uji)
+      eval_dataset_sendiri.py     Evaluasi pada data milik sendiri
+      build_numbers.py            Membuat docs/angka_resmi.md
+  ttd_uji_sendiri/                120 gambar uji milik sendiri
+  docs/angka_resmi.md             Angka resmi untuk laporan dan slide
+  requirements.txt                Daftar pustaka Python
+  jalankan_semua.bat              Menyalakan backend dan frontend
+
+Cara menjalankan (ringkas):
+  1. Pasang pustaka Python dari requirements.txt (sekali saja), dan
+     pustaka frontend di folder "frontend v2" (sekali saja).
+  2. Klik dua kali jalankan_semua.bat. File ini membuka dua jendela
+     (backend di port 8000 dan frontend di port 5173) lalu membuka
+     browser otomatis. Ia TIDAK memasang pustaka, jadi langkah 1 harus
+     sudah dilakukan.
+  3. Untuk mematikan, tutup kedua jendela tersebut.
+
+
+=====================================================================
+13. DAFTAR ISTILAH
+=====================================================================
+
+  Embedding        : deretan angka (di sini 64) yang mewakili ciri sebuah
+                     gambar.
+  Siamese          : dua jaringan kembar berbobot sama yang dipakai
+                     membandingkan dua gambar.
+  CNN              : jaringan saraf yang pandai membaca pola pada gambar.
+  Jarak (L2)       : ukuran seberapa jauh dua deretan angka; 0 = sama
+                     persis.
+  Threshold        : batas jarak; di bawahnya dianggap asli.
+  Contrastive loss : aturan belajar: tarik pasangan mirip, dorong
+                     pasangan berbeda.
+  Skilled forgery  : tiruan yang dibuat oleh orang yang berlatih meniru.
+  Random forgery   : "tiruan" berupa tanda tangan milik orang lain.
+  Otsu             : cara otomatis memilih batas gelap-terang untuk
+                     memisahkan tinta dari kertas.
+  Oklusi           : menutup sebagian gambar untuk melihat pengaruhnya
+                     pada hasil.
+  z-score          : berapa "langkah sebaran" suatu nilai dari batas;
+                     makin besar makin jauh dari perbatasan.
+  Hash (SHA-256)   : sidik jari sebuah file; berubah jika isi file
+                     berubah.

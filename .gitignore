@@ -34,3 +34,11 @@ Thumbs.db
 # Log files
 *.log
 
+
+# Local backups
+frontend v2/_backup/
+
+# Private dataset & archive
+ttd_uji_sendiri/
+arsip_model_lama/
+arsip_lama/

@@ -1,0 +1,11 @@
+Poin Keputusan memakai jarak model saja, sedang fusi hanya hiasa: tolong ambil yang paling akurat saja, mau darimana yang paling akurat menurut kamu. Karena ini digunakan untuk explainable AI
+
+hitung ciri forensik per pembanding lalu ambil median, atau jelaskan jelas bahwa laporan hanya untuk pembanding terdekat.
+
+cantumkan FAR tiruan di UI atau laporan, dan jangan pasang label "ASLI" tegas bila jaraknya dekat batas.
+
+ubah nama kunci atau hitung ulang metrik gabungan.
+
+kalibrasi lewat Platt/isotonic dari pasangan validasi, atau ganti dengan jarak dan zona keputusan.
+
+deduplikasi lewat hash, dan beri peringatan jika distance < ~0.02.
