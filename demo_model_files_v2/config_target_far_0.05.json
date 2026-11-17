@@ -11,7 +11,7 @@
   "keras_version": "3.13.2",
   "data_latih": {
     "CEDAR": "55 orang",
-    "BHSig260-Bengali": "50 orang",
+    "BHSig260-Bengali": "100 orang",
     "BHSig260-Hindi": "160 orang",
     "pembagian": "per orang 70/15/15",
     "versi_foto_hp_untuk_latih": true

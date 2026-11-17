@@ -1,10 +1,109 @@
 # LAPORAN TEKNIS REKAYASA & KONSOLIDASI SISTEM SIGNACHECK (REPORT.md)
 
+> **Status dokumen:** diperbarui untuk **model v2**. Bagian 0 memuat pembaruan v2 (model aktif); bagian 1-6 adalah catatan konsolidasi **model lama** dan tidak lagi menggambarkan model aktif.
+
 Laporan ini menyajikan dokumentasi menyeluruh atas pekerjaan konsolidasi model, validasi data numerik, pengujian dataset mandiri, perbaikan backend dan frontend, serta pengujian sistem secara komprehensif pada proyek **SignaCheck** (Sistem Verifikasi Pemalsuan Tanda Tangan Berbasis Siamese CNN dan Ciri Morfologi).
 
 ---
 
-## 1. Ringkasan Perubahan
+## 0. Pembaruan v2 (model aktif saat ini)
+
+> **Catatan pembaca.** Bagian 1-6 di bawah mendokumentasikan tahap konsolidasi **model lama** (versi 6, ambang 0.4825) dan dibiarkan apa adanya
+> sebagai catatan riwayat. Model yang **aktif sekarang adalah v2**; ringkasannya ada di bagian ini dan rincian lengkapnya di `docs/model_v2.md`.
+
+### 0.1 Latar belakang
+Pada model lama, tanda tangan tiruan mahir (*skilled forgery*) yang rapi sering lolos sebagai asli. Diukur ulang pada orang uji yang sama untuk semua model:
+
+| Data uji | AUC | Tiruan mahir lolos (batas 0.4825) |
+| :--- | :--- | :--- |
+| D1 CEDAR | 0.922 | 16.1% |
+| D2 BHSig260 | 0.825 | **78.8%** |
+| D3 foto sendiri (3 pemilik) | 0.893 | **52.7%** |
+
+Penyebab: (1) batas 0.4825 dipilih di titik EER (menyeimbangkan galat), bukan untuk keamanan; (2) tiruan mahir hanya dikenal dari CEDAR (38 orang latih);
+(3) dataset BHSig260 (260 orang, 14.040 gambar) terlewat karena pola nama file tidak dikenali notebook lama; Toloka tidak punya tiruan mahir.
+
+### 0.2 Ringkasan perubahan berkas
+
+| Berkas / Direktori | Status | Ringkasan |
+| :--- | :--- | :--- |
+| `demo_model_files_v2/` | Baru | Model aktif (ensemble model lama + hasil fine-tuning, keluaran 128 angka, SHA256 `48D9C3A7...`). Berisi `config.json` (aktif) dan empat titik operasi `config_target_far_0.20/0.10/0.08/0.05.json` |
+| `demo_model_files__6_/` | Tetap | Model lama sebagai cadangan; aktifkan dengan `SIGNACHECK_MODEL=lama` |
+| `backend_api.py` | Diperbarui | Memuat model v2 (registri model + hash), skor **jarak terdekat**, batas **per jumlah pembanding**, ambang konsistensi pembanding dari data, status ASLI hanya bila model + Uji Goyang + fusi ciri forensik sepakat, port dapat diatur (`SIGNACHECK_PORT`), dan fungsi `_embed()` yang menghindari panggilan batch=1 yang sangat lambat pada sebagian build TensorFlow (14 detik -> 1,3 detik per pemeriksaan) |
+| `scripts/v2_siapkan_data.py`, `v2_umum.py` | Baru | Membaca CEDAR + BHSig260 dengan benar, membuat cache dan pasangan latih |
+| `scripts/v2_latih_model.py`, `v2_ensemble.py`, `v2_konversi.py` | Baru | Pelatihan/fine-tuning (75% pasangan beda = tiruan mahir, bobot 1.5, pasangan diacak ulang tiap epoch, salinan "foto HP"), penggabungan model, konversi antar-versi Keras |
+| `scripts/v2_kalibrasi.py`, `v2_kalibrasi_k.py` | Baru | Memilih batas dari `target_far` di data validasi dan menghitung batas untuk 1-5 pembanding; menulis `config.json` |
+| `scripts/uji_foto_sendiri_status.py` | Baru | Mengukur status ASLI / BELUM YAKIN / PALSU pada foto sendiri lewat backend yang berjalan |
+| `scripts/test_system.py` | Diperbarui | Port dapat diatur, membaca config sesuai model aktif, menambah uji `/api/verify-json` dan peta penjelasan, mencetak baris `RINGKASAN: lulus X dari Y` |
+| `ganti_target_far.bat` | Baru | Memilih titik operasi: `ganti_target_far.bat 0.20 / 0.10 / 0.08 / 0.05` |
+| `frontend v2/src/routes/periksa.tsx`, `hooks/useModelInfo.ts` | Diperbarui | Panel Info Model: dataset latih yang benar, hasil D3, status akhir; label D1 = CEDAR, D2 = BHSig260; ambang cadangan 0.3369 |
+| `README.md`, `Penjelasan alur kerja.txt`, `docs/model_v2.md`, `MODEL_CARD.md`, `TESTING.md` | Diperbarui | Dokumentasi v2, pembagian data, hasil empat titik operasi, panduan menjalankan target_far secara mandiri |
+
+### 0.3 Pembagian data (per orang, 70% / 15% / 15%, seed 42)
+
+| Dataset | Orang latih / val / uji | Gambar latih | Gambar val | Gambar uji |
+| :--- | :--- | :---: | :---: | :---: |
+| CEDAR (24 asli + 24 tiruan mahir per orang) | 38 / 8 / 9 (55) | 1.824 | 384 | 432 |
+| BHSig260 Bengali (24 asli + 30 tiruan mahir) | 70 / 15 / 15 (100) | 3.780 | 810 | 810 |
+| BHSig260 Hindi (24 asli + 30 tiruan mahir) | 112 / 24 / 24 (160) | 6.048 | 1.296 | 1.296 |
+| **Total** | **220 / 47 / 48 (315)** | **11.652** | **2.490** | **2.538** |
+
+Validasi (5.640 pasangan) dipakai memilih batas dan ambang pemeriksaan; uji dipakai hanya untuk pelaporan (D1 1.800 pasangan, D2 7.800 pasangan).
+D3 (foto sendiri, 120 citra, 3 pemilik, 2.970 pasangan) **tidak dipakai melatih maupun memilih batas**. Salinan "mirip foto HP" ditambahkan pada data latih saja.
+Model lama: CEDAR 38/8/9 dan Toloka 120 orang (tanpa tiruan mahir); BHSig260 tidak terpakai.
+
+### 0.4 Hasil evaluasi
+
+**Kemampuan memisahkan (AUC), orang uji yang sama:**
+
+| Data uji | Model lama | Model v2 |
+| :--- | :--- | :--- |
+| D1 CEDAR | 0.922 | 0.919 |
+| D2 BHSig260 | 0.825 | **0.926** |
+| D3 foto sendiri | 0.893 | 0.892 (tidak naik) |
+
+**Empat titik operasi, 1 pembanding, tingkat model (tiruan mahir lolos / asli ditolak):**
+
+| Data uji | Lama (0.4825) | target 0.20 | target 0.10 | target 0.08 (aktif) | target 0.05 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Batas keputusan | 0.4825 | 0.4302 | 0.3570 | 0.3369 | 0.3095 |
+| D1 CEDAR | 16.1% / 20.0% | 8.9% / 29.8% | 4.6% / 43.3% | 3.4% / 47.3% | 1.2% / 54.0% |
+| D2 BHSig260 | 78.8% / 3.2% | 17.7% / 13.2% | 8.5% / 23.1% | 6.9% / 27.3% | 4.5% / 33.9% |
+| D3 foto sendiri | 52.7% / 9.3% | 32.8% / 20.4% | 18.1% / 35.1% | 14.6% / 40.2% | 11.8% / 48.2% |
+
+**Foto sendiri lewat backend nyata** (3 pemilik; 45 tiruan dan 24 asli; pembanding = asli pertama). Format ASLI / BELUM YAKIN / PALSU:
+
+| Pembanding | Target | Tiruan (dari 45) | Asli (dari 24) |
+| :--- | :--- | :--- | :--- |
+| 1 | 0.20 / 0.10 / 0.08 / 0.05 | 2/12/31 · 1/5/39 · 1/4/40 · 1/3/41 | 7/10/7 · 7/9/8 · 4/12/8 · 2/10/12 |
+| 3 | 0.20 / 0.10 / 0.08 / 0.05 | 5/25/15 · 2/23/20 · 1/24/20 · 0/22/23 | 11/12/1 · 8/15/1 · 5/18/1 · 3/18/3 |
+| 5 | 0.20 / 0.10 / 0.08 / 0.05 | 7/24/14 · 4/25/16 · 2/25/18 · 1/23/21 | 9/14/1 · 4/19/1 · 2/20/2 · 2/17/5 |
+
+Makin kecil `target_far`, makin sedikit tiruan yang lolos, tetapi makin sedikit pula asli yang langsung diterima (menjadi BELUM YAKIN atau PALSU).
+Dibanding model lama (52.7% tiruan lolos), pada target 0.08 hanya 1-2 dari 45 tiruan yang berstatus ASLI. Karena hanya 3 pemilik, selisih kecil antar target berada dalam derau.
+
+### 0.5 Pengujian
+- Uji otomatis `scripts/test_system.py`: **20 dari 20 lulus** pada keempat titik operasi (0.20, 0.10, 0.08, 0.05).
+- Hasil pada foto sendiri diukur lewat backend yang sebenarnya (bukan hanya perhitungan di notebook) dengan `scripts/uji_foto_sendiri_status.py`.
+- Lingkungan yang diuji: Python 3.14 + TensorFlow 2.22 rc + Keras 3.15.1, serta Python 3.11 + TensorFlow 2.20 + Keras 3.13.2; jarak dan status identik.
+
+### 0.6 Temuan dan koreksi selama pembaruan
+1. **Koreksi jumlah orang:** BHSig260 Bengali berisi 100 orang (bukan 50), sehingga BHSig260 = 260 orang dan data v2 = 315 orang. Dokumen, config, dan antarmuka sudah dikoreksi.
+2. **Performa batch=1:** pada TensorFlow 2.22 rc + Python 3.14, memproses satu gambar tunggal memakan ±6 detik (batch >= 2 normal), sehingga satu pemeriksaan ±14 detik. `_embed()` menggandakan gambar tunggal menjadi batch 2; waktu turun menjadi ±1,3 detik dengan hasil numerik identik.
+3. **Kemampuan memisahkan pada foto sendiri tidak naik** (0.893 -> 0.892). FAR turun karena pemilihan batas yang lebih ketat, dibayar dengan lebih banyak "BELUM YAKIN" dan "PALSU" pada tanda tangan asli.
+4. **Uji Goyang** dikalibrasi untuk 1 pembanding; untuk 2-5 pembanding berfungsi sebagai indikasi dan menjadi salah satu penyebab banyak asli berstatus BELUM YAKIN.
+5. Tiruan terhadap pemilik 1 jaraknya (±0.20-0.24) lebih kecil daripada variasi tanda tangan aslinya; tidak ada batas yang memisahkannya tanpa menolak banyak asli. Perbaikan nyata memerlukan lebih banyak data tiruan bergaya Latin hasil foto HP dari lebih banyak orang.
+
+### 0.7 Ringkasan 5 baris (v2)
+1. **Status sistem:** SignaCheck beroperasi end-to-end (FastAPI port 8000, React Vite port 5173) dengan model v2.
+2. **Model aktif & hash:** `demo_model_files_v2/embedding_model.keras` (SHA256 `48D9C3A7F52BB7379A37C997BD11F5D656312DC0FF46A8F38006C3FE673E7BD0`), mode `binary`, titik operasi aktif target_far 0.08 (batas 0.3369 untuk 1 pembanding).
+3. **Metrik utama:** AUC D1 0.919, D2 0.926, D3 0.892; tiruan mahir foto sendiri lolos 14.6% (tingkat model) dan 1-2 dari 45 sebagai status ASLI, turun dari 52.7%.
+4. **Kelemahan jujur:** kemampuan memisahkan pada foto sendiri tidak naik; harga FAR rendah adalah banyak tanda tangan asli menjadi BELUM YAKIN/PALSU; evaluasi foto sendiri hanya 3 pemilik.
+5. **Rekomendasi:** tetap prototipe riset dan indikasi pendukung, bukan alat bukti hukum. Pilih target_far sesuai kebutuhan (0.20 / 0.10 longgar; 0.08 / 0.05 ketat) dan minta tinjauan manusia untuk hasil BELUM YAKIN.
+
+---
+
+## 1. Ringkasan Perubahan *(tahap konsolidasi model lama)*
 
 Berikut adalah daftar berkas yang telah diperiksa, dimodifikasi, dipindahkan, atau dibuat dalam rangka standardisasi sistem:
 
@@ -27,7 +126,7 @@ Berikut adalah daftar berkas yang telah diperiksa, dimodifikasi, dipindahkan, at
 
 ---
 
-## 2. Konsolidasi Model
+## 2. Konsolidasi Model *(model lama)*
 
 Seluruh berkas model `embedding_model.keras` yang terdeteksi di dalam repositori telah dihitung nilai ringkasan hash SHA256-nya:
 
@@ -51,7 +150,7 @@ Jika nilai hash tidak sesuai atau mode pra-pemrosesan bukan `binary`, backend ak
 
 ---
 
-## 3. Hasil Evaluasi Dataset Mandiri (`ttd_uji_sendiri`)
+## 3. Hasil Evaluasi Dataset Mandiri (`ttd_uji_sendiri`) *(model lama, batas 0.4825)*
 
 Pengujian dilakukan menggunakan skrip `scripts/eval_dataset_sendiri.py` terhadap 120 citra tanda tangan mandiri (3 pemilik, masing-masing 20 tanda tangan asli dan 20 tanda tangan tiruan).
 Pasangan uji yang dievaluasi mencakup:
@@ -80,7 +179,7 @@ Hasil lengkap telah diekspor ke `results/uji_dataset_sendiri.json` dan `results/
 
 ---
 
-## 4. Hasil Pengujian Sistem (Rangkuman `TESTING.md`)
+## 4. Hasil Pengujian Sistem (Rangkuman `TESTING.md`) *(dijalankan pada model lama)*
 
 Pengujian sistem dilakukan mencakup 20 skenario uji fungsional dan antarmuka pengguna:
 - **Uji Otomatis via API (`scripts/test_system.py`)**: 16 skenario (TC01–TC15, TC18). Seluruhnya **100% Lulus**.
@@ -111,7 +210,7 @@ Berdasarkan log backend untuk request dengan 1 referensi pembanding:
 
 ---
 
-## 5. Ketidaksesuaian yang Ditemukan
+## 5. Ketidaksesuaian yang Ditemukan *(tahap model lama)*
 
 Selama proses audit dan pengujian, ditemukan beberapa ketidaksesuaian teknis yang perlu dicatat secara transparan:
 
@@ -130,7 +229,7 @@ Selama proses audit dan pengujian, ditemukan beberapa ketidaksesuaian teknis yan
 
 ---
 
-## 6. Ringkasan 5 Baris
+## 6. Ringkasan 5 Baris *(model lama; ringkasan v2 di bagian 0.7)*
 
 1. **Status Sistem**: Sistem SignaCheck beroperasi normal dan terintegrasi penuh secara *end-to-end* (FastAPI backend pada port 8000 dan React Vite frontend pada port 5173).
 2. **Model Aktif & Hash**: `demo_model_files__6_/embedding_model.keras` (SHA256: `48B77FEFF782E83EDBF161EF52E6106F0573471E828CFC41BEA573AEAA3CCD01`, threshold: `0.4824983775615692`, mode: `binary`).

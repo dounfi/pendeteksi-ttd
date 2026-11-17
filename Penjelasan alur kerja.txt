@@ -7,6 +7,8 @@ bagaimana sistem bekerja dari awal sampai akhir: alur pengguna, cara kerja
 backend, dan cara model (kecerdasan buatan) dibuat dan dipakai.
 
 Isi:
+  0. RINGKASAN PEMBARUAN v2 (baca dulu: apa yang berubah, apa yang
+     sudah dilakukan, alur kerja yang baru)
   1. Gambaran besar
   2. Alur kerja dari sisi pengguna
   3. Cara kerja backend, langkah demi langkah
@@ -20,6 +22,401 @@ Isi:
  11. Batasan yang harus diketahui
  12. Peta file proyek
  13. Daftar istilah
+
+
+=====================================================================
+0. RINGKASAN PEMBARUAN v2 (BACA DULU)
+=====================================================================
+
+Bagian ini menjelaskan, dengan bahasa sederhana, apa yang berubah dari
+versi sebelumnya, apa saja yang sudah dikerjakan, dan bagaimana alur kerja
+yang baru. Bagian 1-13 di bawahnya tetap menjelaskan cara kerja sistem;
+bagian yang berubah sudah disesuaikan dan ditandai "v2" atau "model lama".
+
+
+0.1 Kenapa ada pembaruan?
+-------------------------
+Masalah yang ditemukan: tanda tangan PALSU yang ditiru dengan rapi masih
+sering LOLOS dan dinyatakan "ASLI". Dalam istilah teknis ini disebut FAR
+tinggi. Ini berbahaya karena sistem bisa meloloskan pemalsuan.
+
+Angka model lama (diukur pada orang yang sama sekali belum dilihat model):
+  - data foto/scan milik sendiri : 52,7% tiruan mahir lolos
+  - dataset BHSig260             : 78,8% tiruan mahir lolos
+  - dataset CEDAR                : 16,1% tiruan mahir lolos
+
+Tiga penyebabnya:
+  1. BATAS KEPUTUSAN. Angka 0,4825 dipilih supaya salah-tolak dan
+     salah-terima seimbang (titik EER), bukan supaya aman. Batas yang
+     longgar membuat tiruan yang mirip ikut lolos.
+  2. KURANG CONTOH TIRUAN. Model hanya pernah belajar mengenali tiruan
+     mahir dari CEDAR (38 orang latih). Dataset Toloka tidak punya tiruan
+     mahir (isinya hanya tanda tangan orang lain), jadi tidak mengajarkan
+     hal itu.
+  3. DATA TERBUANG. Dataset BHSig260 (260 orang, 14.040 gambar, semuanya
+     berisi tiruan mahir) sebenarnya sudah ada di komputer, tetapi tidak
+     terbaca oleh notebook lama karena pola nama filenya tidak dikenali.
+
+
+0.2 Apa saja yang sudah dilakukan (berurutan)
+---------------------------------------------
+  1. Mengukur ulang model lama pada orang uji yang SAMA dengan model baru,
+     supaya perbandingan adil (angkanya di bagian 10).
+  2. Membaca dataset BHSig260 dengan benar dan mengolahnya dengan
+     pengolahan citra yang SAMA dengan aplikasi (mode binary). Hasilnya
+     disimpan sekali (cache) supaya pelatihan dan pengukuran cepat.
+  3. Membagi data per orang menjadi latih / validasi / uji (tabel di 0.3).
+  4. Melatih ulang model dengan lebih banyak contoh tiruan mahir:
+       - 75% pasangan "beda" adalah tiruan mahir (sebelumnya lebih sedikit),
+       - kesalahan pada pasangan tiruan mahir diberi bobot 1,5 kali,
+       - pasangan gambar diacak ulang tiap putaran, jadi model melihat
+         jauh lebih banyak kombinasi,
+       - tiap gambar latih juga dibuat versi "mirip foto HP" (bayangan,
+         buram, miring, redup, berbintik) supaya tahan foto kamera.
+     Dua model dicoba: (a) model lama dilatih lanjut (fine-tuning) dan
+     (b) model baru dari nol di GPU. Model (b) lebih bagus di BHSig260
+     (AUC 0,943) tetapi lebih buruk di foto milik sendiri (AUC 0,79),
+     sehingga TIDAK dipakai.
+  5. Menggabungkan (ensemble) model lama + model hasil fine-tuning menjadi
+     SATU file. Dua model "berpendapat" bersama, jadi hasilnya lebih
+     stabil. Keluarannya 128 angka (dua kali 64), jarak gabungan = akar
+     dari rata-rata kuadrat jarak kedua model.
+  6. Mengganti cara menilai: dari RATA-RATA jarak ke pembanding menjadi
+     jarak TERDEKAT ke salah satu pembanding. Pada percobaan ini menaikkan
+     kemampuan memisahkan asli-palsu (AUC) di semua dataset.
+  7. Menghitung ulang BATAS KEPUTUSAN pada data validasi. Batas tidak lagi
+     dicari titik seimbang, tetapi dipilih agar tiruan mahir yang lolos
+     paling banyak sebesar "target_far" (mis. 8%). Batas dihitung terpisah
+     untuk 1, 2, 3, 4, dan 5 pembanding, dan dipilih yang paling ketat dari
+     CEDAR dan BHSig260.
+  8. Membuat EMPAT titik operasi: target_far 0,20 / 0,10 / 0,08 / 0,05, dan
+     menyimpan masing-masing sebagai file config tersendiri supaya bisa
+     dibandingkan di laporan dan diuji ulang kapan saja (lihat 0.6).
+  9. Mengubah backend (backend_api.py): memuat model v2, memakai batas per
+     jumlah pembanding, memakai jarak terdekat, dan menjadikan status
+     "ASLI" lebih sulit didapat (syaratnya di 0.5). Model lama tetap bisa
+     dipakai dengan pengaturan SIGNACHECK_MODEL=lama; port bisa diatur
+     dengan SIGNACHECK_PORT.
+ 10. Mengubah frontend: panel "Info Model" menampilkan dataset latih yang
+     benar, hasil foto sendiri (D3), dan hasil status akhir; label dataset
+     D1 = CEDAR dan D2 = BHSig260.
+ 11. Menguji: 20 dari 20 uji otomatis (scripts/test_system.py) lulus untuk
+     tiap titik operasi. Hasil pada foto sendiri diukur lewat backend yang
+     sebenarnya (bukan hanya hitungan di notebook).
+ 12. Meluruskan dokumen: jumlah orang BHSig260 Bengali adalah 100 (bukan
+     50), jadi BHSig260 = 260 orang dan data v2 = 315 orang.
+
+
+0.3 Pembagian data (latih, validasi, uji)
+-----------------------------------------
+Data dibagi BERDASARKAN ORANG (bukan per gambar): 70% orang untuk latih,
+15% validasi, 15% uji. Orang di validasi dan uji tidak pernah dilihat saat
+latihan.
+
+  Fungsi tiap bagian:
+    LATIH     : untuk belajar (mengubah bobot model).
+    VALIDASI  : untuk MEMILIH BATAS keputusan dan ambang pemeriksaan lain
+                (Uji Goyang, ciri forensik, konsistensi pembanding).
+    UJI       : hanya untuk MELAPORKAN hasil. Tidak dipakai memilih apa pun.
+
+  Model v2 (aktif):
+    Dataset            Orang latih/val/uji   Gambar latih  val    uji
+    CEDAR              38 / 8 / 9   (55)           1.824     384    432
+    BHSig260 Bengali   70 / 15 / 15 (100)          3.780     810    810
+    BHSig260 Hindi     112 / 24 / 24 (160)         6.048   1.296  1.296
+    JUMLAH             220 / 47 / 48 (315 orang)  11.652   2.490  2.538
+
+    - CEDAR : 24 asli + 24 tiruan mahir per orang.
+      BHSig260: 24 asli + 30 tiruan mahir per orang.
+    - Baris latih ada 23.304 karena tiap gambar latih punya satu salinan
+      versi "mirip foto HP".
+    - Pasangan validasi 5.640; pasangan uji: D1 (CEDAR) 1.800 dan
+      D2 (BHSig260, 15 Bengali + 24 Hindi = 39 orang) 7.800.
+    - Foto milik sendiri (D3): 120 gambar, 3 pemilik, tiap pemilik 20 asli
+      + 20 tiruan = 2.970 pasangan. HANYA untuk uji; tidak dipakai melatih
+      dan tidak dipakai memilih batas. Ini ujian paling mendekati dunia
+      nyata (foto kamera, tulisan gaya Latin).
+    - Toloka tidak tersedia di komputer ini, tidak dipakai di v2.
+
+  Model lama (notebook ttd-pendeteksi.ipynb):
+    CEDAR 55 orang (split 38/8/9, sama dengan v2) dan Toloka 120 orang
+    (tanpa tiruan mahir). BHSig260 TIDAK terpakai (terlewat).
+
+
+0.4 Hasil: model lama dibanding model baru
+------------------------------------------
+Cara baca: "tiruan lolos" = tanda tangan palsu yang dinyatakan asli (makin
+kecil makin aman). "asli ditolak" = tanda tangan asli yang salah dianggap
+palsu. Semua angka dari orang uji yang belum pernah dilihat model.
+
+  A. Kemampuan memisahkan asli-palsu (AUC, 1,0 sempurna, 0,5 menebak)
+                       Model lama    Model v2
+     D1 CEDAR             0,922         0,919
+     D2 BHSig260          0,825         0,926   <- naik jauh
+     D3 foto sendiri      0,893         0,892   <- TIDAK naik
+
+     Jadi pada foto sendiri model tidak menjadi lebih pandai membedakan.
+     FAR turun karena BATASNYA dibuat lebih ketat. Ketat berarti lebih
+     banyak asli yang tertahan (dibahas di bawah).
+
+  B. Tiruan mahir yang lolos pada tingkat model (1 pembanding)
+                      Lama    0,20    0,10    0,08    0,05   (target_far)
+     D1 CEDAR         16,1%   8,9%    4,6%    3,4%    1,2%
+     D2 BHSig260      78,8%  17,7%    8,5%    6,9%    4,5%
+     D3 foto sendiri  52,7%  32,8%   18,1%   14,6%   11,8%
+
+  C. Asli yang salah ditolak pada tingkat model (1 pembanding)
+                      Lama    0,20    0,10    0,08    0,05
+     D1 CEDAR         20,0%   29,8%   43,3%   47,3%   54,0%
+     D2 BHSig260       3,2%   13,2%   23,1%   27,3%   33,9%
+     D3 foto sendiri   9,3%   20,4%   35,1%   40,2%   48,2%
+
+  D. Batas keputusan (jarak <= batas -> ASLI menurut model)
+     Pembanding   Lama     0,20     0,10     0,08     0,05
+         1        0,4825   0,4302   0,3570   0,3369   0,3095
+         2        0,4825   0,3855   0,3253   0,3090   0,2810
+         3        0,4825   0,3708   0,3095   0,2950   0,2668
+         4        0,4825   0,3563   0,2985   0,2828   0,2588
+         5        0,4825   0,3498   0,2919   0,2774   0,2531
+
+  E. Status akhir di aplikasi pada foto milik sendiri, lewat backend
+     nyata (45 tiruan + 24 asli; ASLI / BELUM YAKIN / PALSU)
+     Pembanding  Target   Tiruan (dari 45)    Asli (dari 24)
+         1        0,20     2 / 12 / 31         7 / 10 / 7
+         1        0,10     1 /  5 / 39         7 /  9 / 8
+         1        0,08     1 /  4 / 40         4 / 12 / 8
+         1        0,05     1 /  3 / 41         2 / 10 / 12
+         3        0,20     5 / 25 / 15        11 / 12 / 1
+         3        0,10     2 / 23 / 20         8 / 15 / 1
+         3        0,08     1 / 24 / 20         5 / 18 / 1
+         3        0,05     0 / 22 / 23         3 / 18 / 3
+         5        0,20     7 / 24 / 14         9 / 14 / 1
+         5        0,10     4 / 25 / 16         4 / 19 / 1
+         5        0,08     2 / 25 / 18         2 / 20 / 2
+         5        0,05     1 / 23 / 21         2 / 17 / 5
+
+  F. Ringkasan akurasi (keputusan model saja, 1 pembanding, data uji;
+     ROC, AUC, dan confusion matrix lengkap ada di bagian 10.6 - 10.8)
+                          Lama    0,20    0,10    0,08    0,05
+    D1 akurasi             83,8%   81,6%   76,6%   75,1%   72,6%
+    D1 akurasi seimbang    83,8%   81,6%   76,6%   75,1%   72,6%
+    D2 akurasi             62,2%   84,9%   84,5%   83,2%   81,1%
+    D2 akurasi seimbang    62,2%   84,9%   84,5%   83,2%   81,1%
+    D3 akurasi             75,2%   81,9%   85,8%   86,3%   86,0%
+    D3 akurasi seimbang    81,1%   81,0%   77,9%   76,2%   72,9%
+     Catatan: D3 tidak seimbang (570 asli : 2.400 palsu), jadi akurasi
+     mentah D3 menyesatkan; lihat akurasi seimbangnya.
+
+  Kesimpulan yang bisa dipegang:
+    - Makin kecil target_far, makin sedikit tiruan yang lolos berstatus
+      ASLI (pada 5 pembanding: 7 -> 4 -> 2 -> 1 dari 45).
+    - Harganya: makin sedikit juga asli yang langsung diterima
+      (9 -> 4 -> 2 -> 2 dari 24) dan makin banyak yang BELUM YAKIN.
+    - Dibanding model lama (52,7% tiruan foto sendiri lolos), v2 pada
+      target 0,08 hanya meloloskan 1-2 dari 45 sebagai status ASLI.
+    - Foto sendiri hanya 3 pemilik, jadi selisih kecil antar target
+      (mis. 0,08 dan 0,05) masih di dalam "derau". Percayai arah
+      trennya, bukan satu angka.
+
+
+0.5 Alur kerja yang baru
+------------------------
+Alur dari sisi pengguna TIDAK berubah (unggah pembanding, unggah yang
+diperiksa, tekan periksa, baca hasil). Yang berubah ada di dalam backend:
+
+  Alur lama                         Alur baru (v2)
+  ---------                         --------------
+  gambar -> olah citra              gambar -> olah citra (sama)
+  -> model lama -> 64 angka         -> model v2 (ensemble) -> 128 angka
+  -> jarak RATA-RATA ke pembanding  -> jarak TERDEKAT ke pembanding
+  -> bandingkan dengan satu batas   -> bandingkan dengan batas yang sesuai
+     0,4825                            JUMLAH PEMBANDING (mis. 0,3369 untuk 1
+                                       pembanding pada target 0,08)
+  -> status ASLI bila jarak <=      -> status ASLI HANYA bila SEMUA ini
+     batas (kecuali Uji Goyang         terpenuhi:
+     ragu / pembanding tidak             1. jarak terdekat <= batas,
+     konsisten / salinan)                2. Uji Goyang menyatakan stabil,
+                                         3. ciri forensik klasik tidak
+                                            menilai "berbeda",
+                                         4. pembanding konsisten satu sama
+                                            lain,
+                                         5. bukan salinan persis.
+                                    -> bila salah satu gagal: BELUM YAKIN
+                                    -> bila jarak > batas dan stabil: PALSU
+
+  Hal lain yang ikut berubah:
+    - "Pembanding tidak konsisten" kini memakai ambang dari data
+      (persentil ke-95 jarak antar-pembanding asli per jumlah pembanding),
+      bukan lagi sama dengan batas keputusan, yang terlalu sering
+      menandai pembanding asli milik orang yang sama.
+    - Uji Goyang kini ikut memakai jarak terdekat dan ambang yang
+      dikalibrasi ulang (ragu_z 1,86 - 2,16 tergantung target).
+    - Fusi ciri forensik kini bisa menurunkan ASLI menjadi BELUM YAKIN
+      (dulu hanya catatan tambahan).
+    - Server memakai model yang ditunjuk SIGNACHECK_MODEL (v2 atau lama)
+      dan memeriksa sidik jari (hash) file model masing-masing.
+
+
+0.6 Cara berpindah titik operasi (target_far)
+---------------------------------------------
+Empat file config tersimpan di folder demo_model_files_v2/ :
+    config_target_far_0.20.json   paling longgar
+    config_target_far_0.10.json
+    config_target_far_0.08.json   AKTIF saat ini
+    config_target_far_0.05.json   paling ketat
+Model (.keras) sama untuk semuanya; hanya batas dan kalibrasi yang beda.
+
+Untuk menguji salah satunya:
+  1. Salin file yang diinginkan menjadi config.json (di folder yang sama).
+  2. Tutup lalu nyalakan ulang backend (jalankan_semua.bat). Backend yang
+     sudah terbuka masih memakai config lama.
+  3. (Opsional) jalankan python scripts/test_system.py.
+Untuk membuat ulang dari nol: scripts/v2_kalibrasi.py --target_far X lalu
+scripts/v2_kalibrasi_k.py --target_far X (lihat docs/model_v2.md).
+Apa saja yang berbeda antar file config dijelaskan di 0.7.
+
+Mana yang dipilih?
+  - Demo yang mulus ("asli -> ASLI"): 0,20 atau 0,10.
+  - Mengutamakan keamanan, siap meninjau manual: 0,08 atau 0,05.
+  - Sebagai titik tengah, yang aktif sekarang adalah 0,08.
+
+
+0.7 Apa yang berubah ketika target_far diganti? (0,20 / 0,10 / 0,08 / 0,05)
+---------------------------------------------------------------------
+Jawaban singkat: yang berubah HANYA "garis batas" (angka ambang) yang
+dipakai untuk memutuskan. Gambar, pengolahan citra, dan model TIDAK
+berubah. Artinya, jarak yang dihitung untuk sepasang tanda tangan SAMA
+di semua target; yang berbeda hanyalah di mana garis batasnya diletakkan.
+
+Analogi: nilai ujian seorang siswa tetap 70. Kalau batas lulus (KKM) 60,
+ia lulus; kalau KKM 80, ia tidak lulus. Nilainya tidak berubah, hanya
+batasnya. Begitu pula di sini: target_far kecil = batas lulus "asli"
+lebih tinggi/ketat.
+
+0.7.1 Yang TIDAK berubah (sama persis di keempat config)
+  - Model (bobot jaringan). File embedding_model.keras sama; sidik jarinya
+    (SHA256) 48D9C3A7... di keempat target. Tidak ada pelatihan ulang.
+  - Pengolahan citra (preprocessing). preprocess_mode tetap "binary" dan
+    file preprocess.py sama. Foto yang sama diolah dengan cara yang sama.
+  - Cara menghitung jarak: embedding 128 angka dan skor jarak TERDEKAT.
+  - Delapan ciri klasik dan batas label "mirip / agak beda / beda".
+  - Bobot fusi ciri forensik (hanya AMBANG fusi yang berubah, lihat di
+    bawah).
+  - Ambang "pembanding tidak konsisten" (0,571 / 0,542 / 0,527 / 0,513
+    untuk 2 / 3 / 4 / 5 pembanding).
+  - Pengaturan Uji Goyang: 6 varian, besar goyangan yang sama.
+  - Alur pemeriksaan dan syarat status ASLI (bagian 0.5).
+  - Data latih, validasi, dan uji (pembagiannya tetap).
+  Akibatnya kemampuan memisahkan asli-palsu (AUC) juga sama di semua
+  target: D1 0,919 ; D2 0,926 ; D3 0,892. Target_far TIDAK membuat model
+  lebih pandai; ia hanya memindahkan keseimbangan antara "tiruan lolos"
+  dan "asli tertolak".
+
+0.7.2 Yang berubah (empat angka ambang, plus angka laporan)
+                                       0,20    0,10    0,08    0,05
+  1. Batas keputusan, 1 pembanding    0,4302  0,3570  0,3369  0,3095
+  2. Batas keputusan, 2 pembanding    0,3855  0,3253  0,3090  0,2810
+     3 pembanding                     0,3708  0,3095  0,2950  0,2668
+     4 pembanding                     0,3563  0,2985  0,2828  0,2588
+     5 pembanding                     0,3498  0,2919  0,2774  0,2531
+  3. Ambang Uji Goyang (ragu_z)        2,16    1,95    1,98    1,86
+     Lebar zona ragu (ragu_margin)    0,0899  0,0777  0,0733  0,0653
+  4. Ambang fusi ciri forensik         0,29   -0,71   -0,98   -1,40
+     (skor tanpa satuan; makin kecil makin ketat)
+  5. Angka laporan (metrics, status_akhir, banyak_pembanding, metrik_per_k,
+     catatan): hanya hasil pengukuran yang ditampilkan di panel Info Model
+     dan di dokumen. TIDAK memengaruhi keputusan.
+
+Di file config, angka-angka itu bernama: threshold, threshold_per_k,
+goyang.ragu_z, goyang.ragu_margin, dan fusi.threshold.
+
+0.7.3 Bagaimana tiap angka dipilih
+  (1) Batas keputusan, 1 pembanding  (skrip v2_kalibrasi.py)
+      a. Ambil data VALIDASI (orang yang tidak dipakai melatih) berisi
+         pasangan "asli vs tiruan mahir".
+      b. Hitung jaraknya dengan model.
+      c. Cari angka jarak yang dilewati oleh sebesar target_far dari
+         tiruan mahir itu. Contoh target 0,08: cari jarak yang hanya
+         mencapai 8% tiruan mahir paling mirip.
+      d. Dilakukan terpisah untuk CEDAR dan BHSig260, lalu dipilih yang
+         PALING KECIL (paling ketat) dari keduanya.
+      Aturan keputusannya tetap: jarak <= batas -> ASLI menurut model.
+      Jadi target_far kecil -> hanya 'tiruan terdekat' yang boleh lolos
+      -> batas makin kecil -> makin ketat.
+  (2) Batas untuk 2-5 pembanding  (skrip v2_kalibrasi_k.py)
+      Cara yang sama, tetapi disimulasikan dengan k pembanding yang
+      diambil acak dari tanda tangan asli tiap orang (diulang 20 kali per
+      orang) dan skornya jarak TERDEKAT. Untuk 1 pembanding dipakai angka
+      dari (1). Makin banyak pembanding, batas makin kecil, karena jarak
+      terdekat dari beberapa pembanding cenderung lebih kecil, termasuk
+      untuk tiruan.
+  (3) Ambang Uji Goyang
+      Pada data validasi, tiap pasangan "digoyang" 6 kali, lalu dihitung
+      z = |rata-rata jarak - batas| / sebaran (lihat bagian 7). 20% pasangan
+      dengan z paling kecil dianggap "ragu"; ragu_z adalah nilai z pada
+      batas 20% itu (persentil ke-20). Karena batas keputusan bergeser
+      tiap target, z tiap pasangan ikut berubah, sehingga ragu_z juga
+      berubah. Nilainya tidak harus berurutan (0,10 -> 1,95 ; 0,08 ->
+      1,98) karena dihitung dari data; selisihnya kecil. ragu_margin
+      dihitung serupa, dari jarak ke batas (satuan jarak).
+  (4) Ambang fusi
+      Fusi adalah regresi logistik atas jarak model + 8 selisih ciri,
+      dilatih di data validasi. Bobotnya sama untuk semua target. Ambangnya
+      dipilih dengan aturan yang sama seperti (1): tiruan mahir yang lolos
+      paling banyak sebesar target_far.
+
+0.7.4 Contoh nyata: pasangan yang sama, empat target
+  Contoh siap pakai nomor 1 (asli vs asli, 1 pembanding) selalu berjarak
+  0,2689, apa pun targetnya:
+
+      Target   Batas     Selisih ke batas   Status akhir
+      0,20     0,4302    0,161              ASLI
+      0,10     0,3570    0,088              ASLI
+      0,08     0,3369    0,068              BELUM YAKIN
+      0,05     0,3095    0,041              BELUM YAKIN
+
+  Jaraknya tidak berubah, tetapi garis batas makin dekat. Makin dekat ke
+  garis, makin mudah Uji Goyang menilai keputusan "tidak stabil" (goyangan
+  kecil bisa membuat jarak melewati garis), sehingga status menjadi BELUM
+  YAKIN. Contoh nomor 2 (jarak 0,5443) dan nomor 3-5 (0,636 - 1,066)
+  berada jauh di atas semua batas, jadi tetap PALSU di semua target.
+
+0.7.5 Akibatnya
+  Menggeser batas ke arah lebih kecil (target_far makin kecil):
+    - lebih sedikit tiruan yang jaraknya berada di bawah garis -> FAR turun;
+    - lebih banyak tanda tangan asli yang jaraknya melewati garis -> asli
+      tertolak (FRR naik), tampil sebagai BELUM YAKIN atau PALSU.
+  Angkanya ada di bagian 0.4. Ringkasnya, pada 5 pembanding foto sendiri:
+  tiruan berstatus ASLI 7 -> 4 -> 2 -> 1 dari 45, asli berstatus ASLI
+  9 -> 4 -> 2 -> 2 dari 24 (target 0,20 -> 0,10 -> 0,08 -> 0,05).
+
+0.7.6 Kenapa tidak cukup mengubah satu angka "threshold" di config?
+  Empat angka di 0.7.2 saling bergantung: Uji Goyang dan fusi dikalibrasi
+  terhadap batas keputusan yang sama. Selain itu, backend membaca batas
+  dari daftar threshold_per_k (berdasarkan jumlah pembanding), sehingga
+  mengubah angka "threshold" saja tidak berpengaruh dan membuat config
+  tidak konsisten. Karena itu gunakan file lengkap config_target_far_X.json
+  (ganti_target_far.bat) atau buat ulang dengan v2_kalibrasi.py lalu
+  v2_kalibrasi_k.py (bagian 0.6).
+
+
+0.8 Yang belum teratasi (jujur)
+-------------------------------
+  - Kemampuan memisahkan pada foto milik sendiri tidak naik (AUC 0,893
+    -> 0,892). Untuk benar-benar naik, dibutuhkan LEBIH BANYAK tanda tangan
+    tiruan bergaya Latin hasil foto HP dari lebih banyak orang. Data
+    sendiri baru 3 pemilik.
+  - Tiruan terhadap pemilik 1 jaraknya (sekitar 0,20-0,24) lebih kecil
+    daripada variasi tanda tangan aslinya sendiri. Tidak ada batas yang
+    bisa memisahkannya tanpa menolak banyak tanda tangan asli.
+  - Tanda tangan asli pemilik 2 memang bervariasi, jadi sering BELUM YAKIN
+    atau ditolak (di contoh siap pakai nomor 2, asli dinilai PALSU di
+    semua target).
+  - Uji Goyang dikalibrasi untuk 1 pembanding; untuk 2-5 pembanding
+    gunakan sebagai indikasi. Ini salah satu penyebab banyak asli
+    berstatus BELUM YAKIN saat pembanding banyak.
+  - Dokumen REPORT.md, MODEL_CARD.md, dan notebook masih menjelaskan model
+    lama.
 
 
 =====================================================================
@@ -48,8 +445,9 @@ Sistem terdiri dari tiga bagian:
       http://127.0.0.1:8000. File utamanya: backend_api.py
 
   MODEL (otak AI)
-      Jaringan saraf tiruan (Siamese CNN) yang sudah dilatih. Tersimpan
-      di demo_model_files__6_/embedding_model.keras
+      Jaringan saraf tiruan (Siamese CNN) yang sudah dilatih. Model
+      AKTIF (v2) tersimpan di demo_model_files_v2/embedding_model.keras.
+      Model lama tetap ada di demo_model_files__6_/ (cadangan).
 
 Penting: hasil sistem adalah INDIKASI KECURIGAAN, bukan bukti hukum.
 
@@ -89,8 +487,9 @@ Langkah 4 - Baca hasil
 =====================================================================
 
 Saat server dinyalakan (sekali di awal):
-  a. Menghitung "sidik jari" (hash SHA-256) file model dan membandingkan
-     dengan nilai yang diharapkan. Kalau berbeda, server menolak jalan.
+  a. Menghitung "sidik jari" (hash SHA-256) file model (v2 atau lama,
+     sesuai SIGNACHECK_MODEL) dan membandingkan dengan nilai yang
+     diharapkan. Kalau berbeda, server menolak jalan.
      Tujuannya: mencegah tidak sengaja memakai model yang salah.
   b. Membaca config.json (berisi batas keputusan, angka evaluasi, dsb).
   c. Memuat model ke memori.
@@ -118,15 +517,17 @@ Saat pengguna menekan tombol periksa (endpoint POST /api/verify):
      peringatan (bagian 9).
 
   5. MENGUBAH GAMBAR MENJADI ANGKA (EMBEDDING)
-     Model mengubah tiap gambar menjadi 64 angka yang mewakili "ciri
-     tanda tangan itu" (bagian 5).
+     Model v2 mengubah tiap gambar menjadi 128 angka (model lama:
+     64 angka) yang mewakili "ciri tanda tangan itu" (bagian 5).
 
   6. MENGHITUNG JARAK
      Jarak antara angka tanda tangan yang diperiksa dengan tiap
-     pembanding, lalu dirata-ratakan.
+     pembanding. Model v2 mengambil jarak TERDEKAT (model lama:
+     rata-rata).
 
   7. KEPUTUSAN
-     Jarak rata-rata dibandingkan dengan batas keputusan (bagian 6).
+     Jarak terdekat dibandingkan dengan batas keputusan yang sesuai
+     jumlah pembanding (bagian 6).
 
   8. PEMERIKSAAN TAMBAHAN
      - Apakah pembanding konsisten satu sama lain?
@@ -158,7 +559,7 @@ membocorkan lokasi file di server.
 
 
 =====================================================================
-4. PENGOLAHAN CITRA (file: demo_model_files__6_/preprocess.py)
+4. PENGOLAHAN CITRA (file: demo_model_files_v2/preprocess.py)
 =====================================================================
 
 Tujuan: apa pun jenis fotonya (scan, foto HP, gambar layar), hasil
@@ -191,6 +592,9 @@ aplikasi berjalan, supaya model melihat data dengan cara yang sama.
 =====================================================================
 5. PEMODELAN (OTAK DARI SISTEM)
 =====================================================================
+
+Catatan (v2): bagian 5.1 - 5.4 menjelaskan prinsip dan model LAMA yang
+menjadi dasar. Apa yang berubah pada model aktif dijelaskan di 5.5.
 
 5.1 Ide dasar: Siamese Network ("jaringan kembar")
 --------------------------------------------------
@@ -235,7 +639,7 @@ Penjelasan singkat:
     sampai 2. Itu sebabnya batas keputusan bisa berupa satu angka kecil
     seperti 0,48.
 
-5.3 Cara model belajar (pelatihan di notebook ttd-pendeteksi.ipynb)
+5.3 Cara model LAMA belajar (notebook ttd-pendeteksi.ipynb)
 --------------------------------------------------------------------
 Data:
   - Dataset 1 (D1): CEDAR, 55 orang. Memuat tanda tangan asli dan
@@ -278,42 +682,70 @@ dipakai saat latihan.
 
 5.4 Batas keputusan (threshold)
 -------------------------------
-Angka 0,4825 (tersimpan di config.json) adalah batas jarak: kurang dari
-atau sama dengan batas -> dianggap asli. Nilai ini ditetapkan sekali di
-notebook, lalu dipakai tetap di semua pengujian dan aplikasi.
+Model lama: batas 0,4825 (tersimpan di config.json folder lama). Jarak
+kurang dari atau sama dengan batas -> dianggap asli. Dipilih di titik EER
+dan dipakai tetap untuk semua pengujian.
+
+Model v2: batas tidak satu angka, tetapi satu angka PER JUMLAH PEMBANDING
+(tersimpan di config.json, bagian "threshold_per_k"). Batas dipilih di
+data VALIDASI dengan aturan: "tiruan mahir yang lolos paling banyak
+sebesar target_far", diambil yang paling ketat dari CEDAR dan BHSig260.
+Tabel batas ada di 0.4 bagian D.
+
+5.5 Apa yang berubah pada model v2
+----------------------------------
+  - Data latih: CEDAR + BHSig260 (315 orang; tabel di 0.3), bukan CEDAR +
+    Toloka.
+  - Pasangan latih: 75% pasangan "beda" adalah tiruan mahir, bobot kesalahan
+    1,5 kali, diacak ulang tiap putaran, ada salinan "mirip foto HP".
+  - Isi jaringan sama dengan 5.2. Model v2 = GABUNGAN dua jaringan (model
+    lama + model hasil fine-tuning). Keluarannya 128 angka; jarak
+    gabungan = akar dari rata-rata kuadrat jarak kedua jaringan. Panjang
+    vektor tetap 1, jadi jarak tetap berada di rentang 0 sampai 2.
+  - Skor: jarak TERDEKAT ke pembanding (bukan rata-rata).
+  - Config: empat titik operasi (target_far 0,20 / 0,10 / 0,08 / 0,05),
+    lihat 0.6.
 
 
 =====================================================================
 6. CARA MODEL MENGAMBIL KEPUTUSAN
 =====================================================================
 
-Contoh dengan 3 pembanding:
+Contoh model v2 dengan 3 pembanding (target 0,08, batas untuk 3
+pembanding = 0,2950):
 
    jarak ke pembanding 1 = 0,32
    jarak ke pembanding 2 = 0,28
    jarak ke pembanding 3 = 0,36
-   jarak rata-rata       = 0,32
+   jarak TERDEKAT        = 0,28
 
-   0,32 <= 0,4825  ->  keputusan model: ASLI
+   0,28 <= 0,2950  ->  keputusan model: ASLI
+   (Model lama memakai rata-rata 0,32 dan batas 0,4825.)
 
-Mengapa dirata-ratakan? Satu pembanding bisa kebetulan kurang mewakili
-(misal sedang tergesa-gesa saat menulis). Rata-rata dari beberapa
-pembanding lebih stabil. Hasil uji menunjukkan makin banyak pembanding,
-makin kecil tingkat kesalahannya (bagian 10).
+Mengapa jarak terdekat? Tanda tangan asli yang ditulis hari ini bisa mirip
+dengan SALAH SATU contoh lama, tetapi tidak harus mirip dengan semuanya.
+Pada pengujian, jarak terdekat menaikkan kemampuan memisahkan asli-palsu.
+Mengapa batasnya berbeda tiap jumlah pembanding? Makin banyak pembanding,
+makin besar peluang ada satu yang kebetulan dekat, sehingga batas dibuat
+makin ketat agar tiruan tidak ikut diuntungkan.
 
 "Indeks kedekatan" (persen) yang tampil di layar dihitung dari jarak:
 tepat di batas keputusan = 50%. Angka ini BUKAN peluang statistik, hanya
 cara menampilkan jarak agar mudah dibaca.
 
-Status akhir:
-  - Kalau tidak ada masalah: status = keputusan model (ASLI / PALSU).
-  - Status berubah menjadi BELUM YAKIN bila salah satu terjadi:
-      * Uji Goyang menunjukkan keputusan tidak stabil, atau
-      * pembanding tidak konsisten satu sama lain, atau
-      * tanda tangan yang diperiksa identik/hampir identik dengan
-        pembanding (kemungkinan salinan; tanda tangan asli yang ditulis
-        ulang tidak pernah sama persis).
-  - Alasannya ditampilkan di layar.
+Status akhir (v2):
+  - ASLI        : jarak terdekat <= batas DAN Uji Goyang stabil DAN ciri
+                  forensik tidak menilai berbeda DAN pembanding konsisten
+                  DAN bukan salinan persis.
+  - BELUM YAKIN : salah satu pemeriksaan di atas gagal. Alasannya
+                  ditampilkan di layar. Termasuk bila jarak dekat dengan
+                  batas sehingga Uji Goyang menilai tidak stabil, baik
+                  condong ASLI maupun PALSU. Bila model menilai ASLI tetapi
+                  ciri forensik menilai BERBEDA, hasilnya juga BELUM YAKIN.
+  - PALSU       : jarak terdekat > batas dan keputusan stabil.
+
+Karena itu "ASLI" sengaja sulit didapat: lebih baik meminta tinjauan
+manusia daripada meloloskan tanda tangan palsu.
 
 
 =====================================================================
@@ -333,12 +765,14 @@ Cara kerja:
      dibagi sebaran.
         z besar -> hasil stabil, jauh dari perbatasan.
         z kecil -> hasil dekat perbatasan atau berubah-ubah.
-  4. Bila z >= 1,74 -> "Sangat yakin / stabil".
+  4. Bila z >= ambang ragu_z -> "Sangat yakin / stabil". Ambang ini
+     dikalibrasi ulang di v2: 2,16 (target 0,20), 1,95 (0,10),
+     1,98 (0,08), 1,86 (0,05). Model lama: 1,74.
      Bila kurang -> "Ragu / perbatasan", dan status menjadi BELUM YAKIN.
   5. Dilaporkan juga berapa dari 6 varian yang membalik keputusan.
 
-Catatan: ambang 1,74 dikalibrasi untuk 1 pembanding. Untuk 2-5
-pembanding, anggap sebagai indikasi.
+Catatan: ambang dikalibrasi untuk 1 pembanding. Untuk 2-5 pembanding,
+anggap sebagai indikasi. Pada v2 Uji Goyang juga memakai jarak TERDEKAT.
 
 
 =====================================================================
@@ -360,7 +794,7 @@ Cara kerja (disebut metode oklusi):
 
 8.2 Delapan ciri klasik (penjelas PENDAMPING)
 ----------------------------------------------
-(file: demo_model_files__6_/forensik.py)
+(file: demo_model_files_v2/forensik.py)
 Dihitung dengan pengolahan citra biasa, tanpa AI:
   1. Bentuk (perbandingan lebar dan tinggi)
   2. Kepadatan tinta
@@ -386,10 +820,13 @@ Jarak dari model digabung dengan selisih delapan ciri klasik memakai
 rumus pembobotan sederhana (bobot tiap ciri dan batasnya tersimpan di
 config.json, bagian "fusi"; jarak dari model mendapat bobot paling besar).
 Hasilnya "keputusan fusi" yang
-ditampilkan sebagai pembanding tambahan. Fusi TIDAK mengubah keputusan
-utama; bila fusi berbeda dari model, layar memberi catatan agar
-ditinjau lebih hati-hati. Pada data uji, perbaikan akurasi dari fusi
-kecil.
+ditampilkan sebagai pembanding tambahan. Pada model lama fusi hanya
+catatan. Pada v2 (berubah): bila model menilai ASLI tetapi fusi menilai
+PALSU, status diturunkan menjadi BELUM YAKIN dengan alasan "Ciri
+forensik klasik menilai tanda tangan ini berbeda dari pembanding".
+Fusi tidak pernah mengubah PALSU menjadi ASLI. Pada data uji,
+perbaikan akurasi dari fusi kecil; perannya terutama sebagai
+pengaman tambahan.
 
 
 =====================================================================
@@ -437,26 +874,170 @@ Istilah:
   AUC = kemampuan memisahkan asli dan palsu; 1,0 sempurna, 0,5 sama
         dengan menebak.
 
-Data uji resmi (orang yang belum pernah dilihat model):
-  D1 (CEDAR)  : AUC 0,937 ; EER 15,1% ; akurasi 84,7%
-                FAR tiruan mahir 18,0% ; FAR tanda tangan orang lain 1,8%
-  D2 (Toloka) : AUC 0,899 ; EER 18,6% ; akurasi 81,5%
+Ringkasan (angka lengkap, tabel, dan cara bacanya ada di bagian 0.3 dan
+0.4; bagian ini hanya merangkum):
 
-Data milik sendiri (D3, 120 gambar dari 3 orang):
-  FRR 9,3%
-  FAR tiruan 52,8%  <-- tinggi: peniru yang rajin latihan masih sering
-                        lolos
-  FAR tanda tangan orang lain 3,9%
-  AUC 0,893 ; EER 19,2%
+10.1 Model lama (batas 0,4825)
+  Angka dari notebook (pasangan dan orang uji lama):
+    D1 (CEDAR)  : AUC 0,937 ; EER 15,1% ; akurasi 84,7%
+    D2 (Toloka) : AUC 0,899 ; EER 18,6% ; akurasi 81,5%
+    D3 (foto sendiri, 120 gambar dari 3 orang): AUC 0,893 ; EER 19,2% ;
+      FRR 9,3% ; FAR tiruan mahir 52,8% ; FAR tanda tangan orang lain 3,9%
+  Diukur ulang pada orang uji yang sama dengan v2:
+    D1 CEDAR      : AUC 0,922 ; tiruan mahir lolos 16,1% ; asli ditolak 20,0%
+    D2 BHSig260   : AUC 0,825 ; tiruan mahir lolos 78,8% ; asli ditolak  3,2%
+    D3 foto sendiri: AUC 0,893 ; tiruan mahir lolos 52,7% ; asli ditolak  9,3%
 
-Pengaruh jumlah pembanding (EER D1):
-  1 pembanding : 14,7%
-  2 pembanding : 13,4%
-  3 pembanding : 13,5%
-  5 pembanding : 12,3%
-Kesimpulan: tambah pembanding membantu, sekitar 3-5 sudah baik.
+10.2 Model v2 (kemampuan memisahkan sama untuk semua target)
+    D1 CEDAR       : AUC 0,919 ; EER 17,4%
+    D2 BHSig260    : AUC 0,926 ; EER 14,9%
+    D3 foto sendiri: AUC 0,892 ; EER 19,1%
 
-Sumber angka: demo_model_files__6_/config.json, docs/angka_resmi.md.
+10.3 Empat titik operasi, 1 pembanding, tingkat model
+     (tiruan mahir lolos / asli ditolak)
+                     0,20           0,10           0,08           0,05
+    D1 CEDAR      8,9% / 29,8%   4,6% / 43,3%   3,4% / 47,3%   1,2% / 54,0%
+    D2 BHSig260  17,7% / 13,2%   8,5% / 23,1%   6,9% / 27,3%   4,5% / 33,9%
+    D3 foto sdr  32,8% / 20,4%  18,1% / 35,1%  14,6% / 40,2%  11,8% / 48,2%
+
+10.4 Status akhir ASLI di aplikasi, 1 pembanding
+     (tiruan yang lolos berstatus ASLI / asli yang langsung berstatus ASLI)
+                     0,20           0,10           0,08           0,05
+    D1 CEDAR      1,7% / 49,1%   0,7% / 34,1%   0,3% / 28,6%   0,3% / 22,7%
+    D2 BHSig260   4,8% / 72,6%   2,2% / 58,6%   1,4% / 52,9%   0,8% / 44,6%
+    D3 foto sdr   3,5% / 43,7%   1,6% / 26,0%   1,3% / 21,8%   0,7% / 14,9%
+
+    Status akhir jauh lebih ketat daripada keputusan model saja, karena
+    ASLI mensyaratkan Uji Goyang dan ciri forensik juga sepakat.
+
+10.5 Pengaruh jumlah pembanding
+  Pada model lama (EER D1): 1 pembanding 14,7% ; 2 pembanding 13,4% ;
+  3 pembanding 13,5% ; 5 pembanding 12,3%.
+  Pada v2 (foto sendiri lewat backend, tabel 0.4 bagian E), menambah
+  pembanding paling jelas mengurangi asli yang salah dinilai PALSU
+  (target 0,20: 7 dari 24 pada 1 pembanding menjadi 1 pada 3 dan 5
+  pembanding), tetapi hasilnya lebih banyak BELUM YAKIN, bukan otomatis
+  lebih banyak ASLI (asli berstatus ASLI 7 -> 11 -> 9). Pada target
+  longgar, tiruan yang lolos juga sedikit naik (2 -> 5 -> 7 dari 45)
+  karena dengan jarak terdekat makin banyak pembanding makin besar
+  peluang satu di antaranya kebetulan dekat. Pada target 0,05 tiruan yang
+  lolos tetap 0-1 dari 45. Kesimpulan: 3 pembanding adalah kompromi yang
+  wajar; pilih targetnya sesuai kebutuhan (tabel 0.4).
+
+10.6 Kurva ROC (gambar: hasil_evaluasi_v2/roc_lama_vs_v2.png)
+  Apa itu ROC? Bayangkan batas keputusan digeser dari sangat longgar
+  sampai sangat ketat. Pada tiap posisi batas, dihitung dua hal:
+    - sumbu x : berapa persen tanda tangan ASLI yang ikut ditolak (FRR),
+    - sumbu y : berapa persen tanda tangan PALSU yang berhasil terdeteksi
+                (1 - FAR).
+  Titik-titik itu membentuk satu kurva. Cara membaca:
+    - Garis diagonal = sekadar menebak. Kurva yang lebih melengkung ke
+      pojok kiri atas = pemisahan asli-palsu lebih baik.
+    - AUC = luas di bawah kurva (1,0 sempurna, 0,5 menebak).
+  Hasil pada data uji (AUC / EER):
+                          Lama           v2
+    D1 CEDAR           0,922 / 16,5%   0,919 / 17,4%
+    D2 BHSig260        0,825 / 25,3%   0,926 / 14,9%
+    D3 foto sendiri    0,893 / 19,2%   0,892 / 19,1%
+  Yang terlihat di gambar:
+    - D2: kurva v2 jauh di atas kurva lama -> v2 jelas lebih baik.
+    - D1 dan D3: kedua kurva hampir berhimpit -> kemampuan memisahkan sama.
+    - Empat titik biru (target 0,20 / 0,10 / 0,08 / 0,05) berada di
+      KURVA YANG SAMA. Mengganti target_far hanya memindahkan titik di
+      sepanjang kurva (makin ketat = makin ke kanan: tiruan makin banyak
+      terdeteksi, tetapi asli juga makin banyak ikut ditolak). Itu sebabnya
+      AUC dan EER sama untuk semua target.
+
+10.7 Akurasi (keputusan model saja, 1 pembanding, data uji)
+  Akurasi = (asli diterima + palsu ditolak) dibagi seluruh pasangan.
+  Akurasi seimbang = rata-rata dari "asli yang diterima" dan "palsu yang
+  ditolak"; tidak terpengaruh perbedaan jumlah asli dan palsu.
+  Jumlah pasangan uji:
+    D1: 900 asli + 900 palsu      (seimbang)
+    D2: 3.900 asli + 3.900 palsu  (seimbang)
+    D3: 570 asli + 2.400 palsu    (TIDAK seimbang; asli hanya 19%)
+                          Lama    0,20    0,10    0,08    0,05
+    D1 akurasi             83,8%   81,6%   76,6%   75,1%   72,6%
+    D1 akurasi seimbang    83,8%   81,6%   76,6%   75,1%   72,6%
+    D2 akurasi             62,2%   84,9%   84,5%   83,2%   81,1%
+    D2 akurasi seimbang    62,2%   84,9%   84,5%   83,2%   81,1%
+    D3 akurasi             75,2%   81,9%   85,8%   86,3%   86,0%
+    D3 akurasi seimbang    81,1%   81,0%   77,9%   76,2%   72,9%
+  Cara membacanya:
+    - D1 dan D2 seimbang, jadi akurasi = akurasi seimbang. Pada D2, v2
+      jauh lebih akurat daripada model lama (84,9% vs 62,2% pada target
+      0,20). Pada D1, akurasi turun saat target makin ketat (81,6% ->
+      72,6%) karena makin banyak asli yang ditolak.
+    - D3 menjebak: akurasi mentah NAIK (75,2% -> 86,3%) saat makin ketat,
+      padahal akurasi seimbang TURUN (81,1% -> 72,9%). Kenaikan itu hanya
+      karena kelas palsu mendominasi dan makin sering dijawab benar.
+      Jangan dibaca sebagai model makin baik.
+    - Akurasi ini belum memperhitungkan status BELUM YAKIN. Status akhir di
+      aplikasi punya tiga kemungkinan (tabel 0.4 bagian E, yaitu confusion
+      matrix 2 x 3 untuk foto sendiri).
+
+10.8 Confusion matrix (gambar: hasil_evaluasi_v2/confusion_matrix.png)
+  Confusion matrix adalah tabel 2 x 2 yang menghitung jenis hasil
+  keputusan. Di sini kelas "positif" = ASLI:
+
+                              Diputuskan ASLI       Diputuskan PALSU
+    Sebenarnya ASLI           TP (benar)            FN (asli ditolak)
+    Sebenarnya PALSU          FP (palsu lolos)      TN (benar)
+
+    TP = asli yang diterima         FN = asli yang salah ditolak
+    FP = palsu yang salah diterima  TN = palsu yang tertolak
+  FP adalah kesalahan paling berbahaya (pemalsuan lolos). Turunannya:
+    Presisi ASLI = TP/(TP+FP): dari yang dinyatakan ASLI, berapa yang benar.
+    Recall ASLI  = TP/(TP+FN): dari semua yang asli, berapa yang diterima.
+    Spesifisitas = TN/(TN+FP): dari semua yang palsu, berapa yang ditolak.
+  Hasil pada data uji (1 pembanding):
+    D1 CEDAR: 900 asli, 900 palsu
+    Model      Batas     TP     FN     FP     TN  Akur.  Seimb  Pres. Recall
+    Lama      0,4825    720    180    112    788  83,8%  83,8%  86,5%  80,0%
+    v2 0,20   0,4302    632    268     63    837  81,6%  81,6%  90,9%  70,2%
+    v2 0,10   0,3570    510    390     31    869  76,6%  76,6%  94,3%  56,7%
+    v2 0,08   0,3369    474    426     23    877  75,1%  75,1%  95,4%  52,7%
+    v2 0,05   0,3095    414    486      8    892  72,6%  72,6%  98,1%  46,0%
+
+    D2 BHSig260 (Bengali + Hindi): 3.900 asli, 3.900 palsu
+    Model      Batas     TP     FN     FP     TN  Akur.  Seimb  Pres. Recall
+    Lama      0,4825   3775    125   2826   1074  62,2%  62,2%  57,2%  96,8%
+    v2 0,20   0,4302   3385    515    665   3235  84,9%  84,9%  83,6%  86,8%
+    v2 0,10   0,3570   2998    902    306   3594  84,5%  84,5%  90,7%  76,9%
+    v2 0,08   0,3369   2834   1066    241   3659  83,2%  83,2%  92,2%  72,7%
+    v2 0,05   0,3095   2579   1321    153   3747  81,1%  81,1%  94,4%  66,1%
+
+    D3 foto sendiri (3 pemilik): 570 asli, 2.400 palsu
+    Model      Batas     TP     FN     FP     TN  Akur.  Seimb  Pres. Recall
+    Lama      0,4825    517     53    683   1717  75,2%  81,1%  43,1%  90,7%
+    v2 0,20   0,4302    454    116    422   1978  81,9%  81,0%  51,8%  79,6%
+    v2 0,10   0,3570    370    200    221   2179  85,8%  77,9%  62,6%  64,9%
+    v2 0,08   0,3369    341    229    177   2223  86,3%  76,2%  65,8%  59,8%
+    v2 0,05   0,3095    295    275    142   2258  86,0%  72,9%  67,5%  51,8%
+
+  Akur. = akurasi, Seimb = akurasi seimbang, Pres. = presisi ASLI,
+  Recall = recall ASLI.
+
+  Contoh membaca D3, v2 target 0,08: dari 570 asli, 341 diterima dan 229
+  ditolak; dari 2.400 palsu, 177 lolos dan 2.223 ditolak. Dibanding model
+  lama (683 palsu lolos), palsu yang lolos turun sekitar 74%, tetapi asli
+  yang ditolak naik dari 53 menjadi 229. Itulah pertukaran yang dibuat
+  oleh target_far. Makin kecil target: FP makin kecil, FN makin besar.
+
+10.9 Cara menghasilkan ulang
+  Perintah (dari folder proyek, butuh cache data dan paket matplotlib):
+    python scripts\v2_evaluasi.py --cache "D:\cache_v2"
+  Lama proses sekitar 2 menit. Hasil di folder hasil_evaluasi_v2/:
+    roc_lama_vs_v2.png       kurva ROC D1, D2, D3 (lama vs v2)
+    confusion_matrix.png     confusion matrix 3 data uji x 5 titik batas
+    ringkasan_evaluasi.md    semua tabel (AUC, akurasi, confusion matrix)
+    evaluasi_v2.json         angka lengkap
+    confusion_matrix.csv     confusion matrix dalam bentuk tabel
+    roc_<D1|D2|D3>_<lama|v2>.csv   titik-titik kurva ROC
+
+Sumber angka: demo_model_files_v2/config_target_far_*.json,
+docs/model_v2.md, README.md. Angka model lama: demo_model_files__6_/
+config.json, docs/angka_resmi.md.
 
 
 =====================================================================
@@ -464,17 +1045,24 @@ Sumber angka: demo_model_files__6_/config.json, docs/angka_resmi.md.
 =====================================================================
 
   - Sistem lebih baik menolak tanda tangan milik orang lain daripada
-    menolak peniru yang terampil. Pada data sendiri, lebih dari separuh
-    tiruan mahir masih dinilai asli. Jangan dijadikan satu-satunya dasar
-    keputusan penting.
+    menolak peniru yang terampil. Pada model lama, lebih dari separuh
+    tiruan mahir (52,7%) pada data sendiri lolos. Model v2 jauh lebih
+    ketat (14,6% pada tingkat model, 1-2 dari 45 sebagai status ASLI
+    pada target 0,08), tetapi harganya banyak asli menjadi BELUM YAKIN
+    atau PALSU. Jangan dijadikan satu-satunya dasar keputusan penting.
+  - Kemampuan memisahkan pada foto sendiri tidak naik di v2 (AUC
+    0,893 -> 0,892). Menurunkan FAR dilakukan lewat batas, bukan
+    lewat model yang lebih pandai. Evaluasi foto sendiri hanya 3
+    pemilik, jadi angkanya indikasi.
   - Hasil adalah indikasi kecurigaan, bukan bukti hukum.
   - Tanda tangan digambar di layar atau di udara berbeda dengan tanda
     tangan di atas kertas (tidak ada tekanan pena, garis seragam). Angka
     akurasi di atas diukur pada tanda tangan di kertas.
   - Setiap orang menulis agak berbeda tiap waktu. Sebagian tanda tangan
     asli akan ditolak (FRR); karena itu ada status BELUM YAKIN.
-  - Batas keputusan satu untuk semua orang. Orang yang tanda tangannya
-    sangat bervariasi lebih sering salah ditolak.
+  - Batas keputusan sama untuk semua orang (hanya berbeda menurut jumlah
+    pembanding). Orang yang tanda tangannya sangat bervariasi (mis.
+    pemilik 2 pada data sendiri) lebih sering salah ditolak.
   - Penilaian kualitas foto memakai ambang heuristik yang diuji pada
     gangguan buatan, belum pada foto HP asli.
 
@@ -485,22 +1073,36 @@ Sumber angka: demo_model_files__6_/config.json, docs/angka_resmi.md.
 
   backend_api.py                  Server utama (alur di bagian 3)
   kualitas_foto.py                Penilaian kualitas foto (bagian 9)
-  demo_model_files__6_/
-      embedding_model.keras       Model terlatih (bagian 5)
-      config.json                 Batas keputusan, angka evaluasi, dll
+  demo_model_files_v2/            MODEL AKTIF (v2)
+      embedding_model.keras       Model terlatih (bagian 5, 5.5)
+      config.json                 Config AKTIF (target_far 0,08)
+      config_target_far_0.20.json / _0.10 / _0.08 / _0.05
+                                  Empat titik operasi (bagian 0.6)
       preprocess.py               Pengolahan citra (bagian 4)
       forensik.py                 Delapan ciri klasik dan fusi (bagian 8)
       gangguan.py                 Gangguan buatan dan Uji Goyang (7)
-  ttd-pendeteksi.ipynb            Notebook pelatihan model
+  demo_model_files__6_/           Model LAMA (cadangan; SIGNACHECK_MODEL=lama)
+  ttd-pendeteksi.ipynb            Notebook pelatihan model LAMA
   frontend v2/                    Tampilan web (React)
       src/routes/periksa.tsx      Halaman pemeriksaan dan hasil
       src/components/SignatureInputModal.tsx   Unggah, kamera, pad, udara
   scripts/
+      v2_siapkan_data.py          Membaca CEDAR + BHSig260, membuat cache
+      v2_latih_model.py           Melatih/fine-tuning model v2
+      v2_ensemble.py              Menggabungkan model menjadi satu file
+      v2_kalibrasi.py             Memilih batas dari target_far, mengukur
+                                  hasil, menulis config
+      v2_kalibrasi_k.py           Batas per jumlah pembanding (1-5)
+      v2_evaluasi.py              ROC, AUC, akurasi, confusion matrix
+      uji_foto_sendiri_status.py  Status ASLI/BELUM YAKIN/PALSU pada foto
+                                  sendiri lewat backend yang berjalan
       test_system.py              Uji otomatis API (20 kasus uji)
       eval_dataset_sendiri.py     Evaluasi pada data milik sendiri
       build_numbers.py            Membuat docs/angka_resmi.md
   ttd_uji_sendiri/                120 gambar uji milik sendiri
-  docs/angka_resmi.md             Angka resmi untuk laporan dan slide
+  hasil_evaluasi_v2/              Gambar ROC, confusion matrix, tabel (10.6-10.9)
+  docs/angka_resmi.md             Angka resmi model LAMA
+  docs/model_v2.md                Rincian model v2 dan hasil tiap target_far
   requirements.txt                Daftar pustaka Python
   jalankan_semua.bat              Menyalakan backend dan frontend
 
@@ -518,8 +1120,8 @@ Cara menjalankan (ringkas):
 13. DAFTAR ISTILAH
 =====================================================================
 
-  Embedding        : deretan angka (di sini 64) yang mewakili ciri sebuah
-                     gambar.
+  Embedding        : deretan angka (64 pada model lama, 128 pada v2)
+                     yang mewakili ciri sebuah gambar.
   Siamese          : dua jaringan kembar berbobot sama yang dipakai
                      membandingkan dua gambar.
   CNN              : jaringan saraf yang pandai membaca pola pada gambar.
@@ -538,3 +1140,24 @@ Cara menjalankan (ringkas):
                      makin besar makin jauh dari perbatasan.
   Hash (SHA-256)   : sidik jari sebuah file; berubah jika isi file
                      berubah.
+  target_far       : batas paling besar tiruan mahir yang boleh lolos
+                     pada data validasi (mis. 0,08 = 8%). Dipakai untuk
+                     memilih batas keputusan. Makin kecil, makin ketat.
+  Titik operasi    : satu pilihan target_far beserta batas hasilnya
+                     (di sini 0,20 / 0,10 / 0,08 / 0,05).
+  Ensemble         : beberapa model digabung; keputusan diambil dari
+                     gabungan keluarannya.
+  Fine-tuning      : melatih lanjut model yang sudah ada dengan data
+                     baru, tanpa mulai dari nol.
+  Jarak terdekat   : skor yang diambil dari pembanding yang paling mirip
+                     (bukan rata-rata semua pembanding).
+  ragu_z           : ambang z-score Uji Goyang; di bawah angka ini
+                     keputusan dianggap tidak stabil (BELUM YAKIN).
+  ragu_margin      : lebar zona dekat batas (satuan jarak) yang
+                     dianggap ragu.
+  Persentil        : nilai yang dilewati oleh sekian persen data. Persentil
+                     ke-8 dari jarak tiruan = jarak yang hanya mencapai 8%
+                     tiruan paling mirip.
+  Data latih/validasi/uji : tiga bagian data per orang. Latih untuk
+                     belajar, validasi untuk memilih batas, uji hanya
+                     untuk melapor hasil.

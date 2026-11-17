@@ -3,6 +3,13 @@
 Dokumen ini memuat daftar skenario uji fungsional, integrasi, dan antarmuka pengguna (UI) untuk sistem verifikasi tanda tangan **SignaCheck**.
 Pengujian otomatis dieksekusi menggunakan skrip `scripts/test_system.py` pada backend aktif (`http://127.0.0.1:8000`), sedangkan pengujian interaktif UI diverifikasi pada frontend Vite (`http://localhost:5173`).
 
+> **Pembaruan v2.** Kolom "Hasil Sebenarnya" pada tabel di bawah (jarak, ambang 0.4825, hash `48B77FEFF7...`) dicatat pada **model lama**.
+> Model aktif sekarang adalah v2 (ambang 0.3369 untuk 1 pembanding pada target_far 0.08; hash `48D9C3A7...`). Rangkaian uji otomatis
+> `scripts/test_system.py` telah diperbarui (port dapat diatur lewat `SIGNACHECK_PORT`, membaca config sesuai model aktif, ditambah uji `/api/verify-json`
+> dan peta penjelasan) dan menghasilkan **20 dari 20 lulus** pada keempat titik operasi (target_far 0.20, 0.10, 0.08, 0.05).
+> Menjalankan ulang: nyalakan backend, lalu `python scripts/test_system.py`; baris terakhir `RINGKASAN: lulus 20 dari 20 uji`.
+> Nilai jarak pada tabel berbeda pada model v2 karena embedding, skor (jarak terdekat), dan batas keputusan berubah.
+
 ---
 
 ## Tabel Pengujian Fungsional (TC01 – TC20)

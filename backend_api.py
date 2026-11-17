@@ -395,6 +395,16 @@ def _gray_hash(gray: np.ndarray) -> str:
     return hashlib.sha256(gray.tobytes() + str(gray.shape).encode()).hexdigest()
 
 
+def _embed(batch: np.ndarray) -> np.ndarray:
+    """Menghitung embedding. Satu gambar (batch=1) digandakan menjadi 2 lalu diambil hasil pertamanya:
+    pada sebagian build TensorFlow CPU (terukur: TF 2.22rc + Python 3.14) panggilan batch=1 memakan ~6 detik,
+    sedangkan batch >= 2 normal (~0,05 detik per gambar). Hasil numerik identik."""
+    n = len(batch)
+    if n == 1:
+        batch = np.concatenate([batch, batch], axis=0)
+    return EMBEDDING_MODEL(batch, training=False).numpy()[:n]
+
+
 def _occlusion_map(qry_arr: np.ndarray, ref_embs: np.ndarray, base_dist: float) -> Optional[np.ndarray]:
     """
     Peta penjelasan berbasis oklusi pada EMBEDDING model (bukan ciri klasik).
@@ -417,7 +427,7 @@ def _occlusion_map(qry_arr: np.ndarray, ref_embs: np.ndarray, base_dist: float) 
     batch = np.repeat(qry_arr[None, :, :, None], len(kotak), axis=0).astype(np.float32)
     for i, (y, x) in enumerate(kotak):
         batch[i, y:y + ph, x:x + pw, 0] = 0.0
-    emb = EMBEDDING_MODEL(batch, training=False).numpy()                      # (n, d)
+    emb = _embed(batch)                                                       # (n, d)
     d_all = np.linalg.norm(emb[:, None, :] - ref_embs[None, :, :], axis=2)                 # (n, k)
     d_occ = d_all.min(axis=1) if CONFIG.get("skor_k") == "min" else d_all.mean(axis=1)    # (n,) sama dengan skor keputusan
     delta = base_dist - d_occ                                                  # >0: area ini memperbesar jarak
@@ -505,7 +515,7 @@ def _run_verification(
 
     # --- 3. Embedding query ---
     qry_batch = np.expand_dims(qry_arr, axis=(0, -1)).astype(np.float32)
-    qry_emb = EMBEDDING_MODEL(qry_batch, training=False).numpy()
+    qry_emb = _embed(qry_batch)
 
     # --- 4. Embedding semua pembanding ---
     n_refs = len(refs_gray)
@@ -528,7 +538,7 @@ def _run_verification(
                            "Pastikan tinta kontras dengan kertas, lalu foto ulang.",
                 )
         ref_batch_i = np.expand_dims(ref_arr_i, axis=(0, -1)).astype(np.float32)
-        ref_emb_i = EMBEDDING_MODEL(ref_batch_i, training=False).numpy()
+        ref_emb_i = _embed(ref_batch_i)
         distances.append(float(np.linalg.norm(ref_emb_i - qry_emb)))
         ref_embs_list.append(ref_emb_i[0])
         ref_steps_all.append(ref_steps_i)
@@ -638,7 +648,7 @@ def _run_verification(
     if run_shake_test:
         n_shake = int(goyang_cfg.get("n", 6))
         variants = gangguan.shake_variants(qry_arr, n=n_shake, seed=42)
-        emb_vars = EMBEDDING_MODEL(variants, training=False).numpy()                  # (n, d)
+        emb_vars = _embed(variants)                                                   # (n, d)
         # (n, k): jarak tiap varian ke tiap pembanding -> rata-rata per varian, sama seperti keputusan
         D = np.linalg.norm(emb_vars[:, None, :] - ref_embs[None, :, :], axis=2)
         per_var = D.min(axis=1) if use_min else D.mean(axis=1)

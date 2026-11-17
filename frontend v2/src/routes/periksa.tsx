@@ -1070,7 +1070,7 @@ function ModelInfoPanel({ modelInfo, loading }: { modelInfo: ModelInfo | null; l
               <InfoRow label="Batas keputusan (threshold)" value={modelInfo.threshold?.toFixed(10) ?? "—"} />
               {modelInfo.ragu_z && <InfoRow label="Ambang keyakinan Uji Goyang (z-score)" value={modelInfo.ragu_z.toFixed(4)} />}
               {modelInfo.ragu_margin != null && <InfoRow label="Lebar zona ragu (satuan jarak)" value={`±${modelInfo.ragu_margin.toFixed(4)}`} />}
-              <InfoRow label="Dataset latih" value="CEDAR (55) + BHSig260 Bengali (50) + Hindi (160) orang" />
+              <InfoRow label="Dataset latih" value="CEDAR (55) + BHSig260 Bengali (100) + Hindi (160) orang" />
               {modelInfo.status_akhir?.D3 && (
                 <InfoRow
                   label="Tiruan lolos berstatus ASLI (foto sendiri, 1 pembanding)"

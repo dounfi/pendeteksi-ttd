@@ -2,7 +2,7 @@
 v2_siapkan_data.py - menyiapkan data latih model v2 (fokus menurunkan FAR tiruan mahir).
 
 Masalah model lama: tanda tangan TIRUAN MAHIR (skilled forgery) hanya dilatih dari CEDAR (38 orang latih).
-Dataset BHSig260 (Bengali 50 orang, Hindi 160 orang; 24 asli + 30 tiruan mahir per orang) ada di folder data
+Dataset BHSig260 (Bengali 100 orang, Hindi 160 orang; 24 asli + 30 tiruan mahir per orang) ada di folder data
 tetapi TIDAK terpakai di notebook lama (nama file tidak dikenali -> 14.040 gambar dilewati).
 Skrip ini membacanya dengan benar, mengolahnya dengan preprocess.py yang SAMA dengan aplikasi
 (mode binary), lalu menyimpan cache untuk training.

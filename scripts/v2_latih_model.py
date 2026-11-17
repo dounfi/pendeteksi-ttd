@@ -2,7 +2,7 @@
 v2_latih_model.py - melatih ulang Siamese CNN dengan fokus menurunkan FAR (tiruan mahir lolos).
 
 Perbedaan utama dari model lama:
-  1. Data tiruan mahir jauh lebih banyak: CEDAR (55 orang) + BHSig260 Bengali (50) + Hindi (160).
+  1. Data tiruan mahir jauh lebih banyak: CEDAR (55 orang) + BHSig260 Bengali (100) + Hindi (160).
   2. Porsi pasangan tiruan mahir diperbesar (75% dari semua pasangan "beda") dan diberi bobot loss lebih besar.
   3. Pasangan diacak ULANG setiap epoch (model melihat jauh lebih banyak kombinasi).
   4. Sebagian gambar latih memakai versi "mirip foto HP" (bayangan/buram/miring/redup/noise).

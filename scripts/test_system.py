@@ -242,6 +242,11 @@ def run_tests():
 
     print(json.dumps(results, indent=2))
 
+    lulus = sum(1 for v in results.values() if v.get("pass"))
+    gagal = [k for k, v in results.items() if not v.get("pass")]
+    print(f"\nRINGKASAN: lulus {lulus} dari {len(results)} uji" + (f" | GAGAL: {', '.join(gagal)}" if gagal else ""))
+    sys.exit(0 if not gagal else 1)
+
 if __name__ == "__main__":
     run_tests()
 
