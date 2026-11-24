@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { BRAND } from "@/lib/brand";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -74,11 +75,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SignaCheck" },
+      { title: BRAND.name },
       { name: "description", content: "Periksa indikasi keaslian tanda tangan." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@SignaCheck" },
+      { name: "twitter:site", content: `@${BRAND.name}` },
     ],
     links: [
       {
