@@ -11,6 +11,7 @@ __pycache__/
 .venv/
 env/
 venv/
+hasil_model_v2/cache/
 
 # Build outputs
 dist/
@@ -42,3 +43,6 @@ frontend v2/_backup/
 ttd_uji_sendiri/
 arsip_model_lama/
 arsip_lama/
+
+**/cache/
+*.npz
