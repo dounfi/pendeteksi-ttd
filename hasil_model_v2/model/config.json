@@ -1,0 +1,726 @@
+{
+  "model": "v2: CEDAR + BHSig260 (Bengali, Hindi), fokus FAR tiruan mahir",
+  "versi": "v2-notebook",
+  "img_h": 128,
+  "img_w": 256,
+  "preprocess_mode": "binary",
+  "threshold": 0.37744781374931335,
+  "margin": 1.0,
+  "catatan_metrik": "D1 = CEDAR uji, D2 = BHSig260 Bengali+Hindi uji, D3 = foto/scan sendiri. Semua orang uji tidak dipakai saat training. Batas dipilih di validasi (paling ketat dari CEDAR dan BHSig260) sehingga FAR tiruan mahir validasi <= 8% di tiap dataset. Keputusan: jarak <= batas -> ASLI. Skor = jarak terdekat.",
+  "tensorflow_version": "2.22.0-rc0",
+  "keras_version": "3.15.1",
+  "data_latih": {
+    "CEDAR": "55 orang",
+    "BHSig260-Bengali": "100 orang",
+    "BHSig260-Hindi": "160 orang",
+    "pembagian": "per orang 70/15/15",
+    "versi_foto_hp_untuk_latih": true
+  },
+  "metrics": {
+    "test_auc": 0.9178901234567901,
+    "test_eer": 0.16333333333333333,
+    "test_accuracy": 0.7405555555555555,
+    "test_FRR": 0.4822222222222222,
+    "test_FAR": 0.03666666666666667,
+    "test_FAR_skilled_forgery": 0.04888888888888889,
+    "per_dataset": {
+      "D1": {
+        "auc": 0.9178901234567901,
+        "eer": 0.16333333333333333,
+        "batas": 0.37744781374931335,
+        "n": 1800,
+        "TP_asli_diterima": 466,
+        "FN_asli_ditolak": 434,
+        "FP_palsu_diterima": 33,
+        "TN_palsu_ditolak": 867,
+        "akurasi": 0.7405555555555555,
+        "presisi_ASLI": 0.9338677354709419,
+        "recall_ASLI": 0.5177777777777778,
+        "spesifisitas": 0.9633333333333334,
+        "F1_ASLI": 0.6661901358112938,
+        "FRR": 0.4822222222222222,
+        "FAR": 0.03666666666666667,
+        "mahir_lolos": 33,
+        "mahir_n": 675,
+        "acak_lolos": 0,
+        "acak_n": 225
+      },
+      "D2": {
+        "auc": 0.9115899408284024,
+        "eer": 0.16769230769230775,
+        "batas": 0.37744781374931335,
+        "n": 7800,
+        "TP_asli_diterima": 2865,
+        "FN_asli_ditolak": 1035,
+        "FP_palsu_diterima": 321,
+        "TN_palsu_ditolak": 3579,
+        "akurasi": 0.8261538461538461,
+        "presisi_ASLI": 0.89924670433145,
+        "recall_ASLI": 0.7346153846153847,
+        "spesifisitas": 0.9176923076923077,
+        "F1_ASLI": 0.808636748518205,
+        "FRR": 0.2653846153846154,
+        "FAR": 0.0823076923076923,
+        "mahir_lolos": 269,
+        "mahir_n": 2925,
+        "acak_lolos": 52,
+        "acak_n": 975
+      },
+      "D3": {
+        "auc": 0.8765190058479532,
+        "eer": 0.20684210526315788,
+        "batas": 0.37744781374931335,
+        "n": 2970,
+        "TP_asli_diterima": 346,
+        "FN_asli_ditolak": 224,
+        "FP_palsu_diterima": 253,
+        "TN_palsu_ditolak": 2147,
+        "akurasi": 0.8393939393939394,
+        "presisi_ASLI": 0.5776293823038398,
+        "recall_ASLI": 0.6070175438596491,
+        "spesifisitas": 0.8945833333333333,
+        "F1_ASLI": 0.5919589392643285,
+        "FRR": 0.3929824561403509,
+        "FAR": 0.10541666666666667,
+        "mahir_lolos": 243,
+        "mahir_n": 1200,
+        "acak_lolos": 10,
+        "acak_n": 1200
+      }
+    }
+  },
+  "titik_operasi": {
+    "0.2": {
+      "D1": {
+        "batas": 0.4762529134750366,
+        "n": 1800,
+        "TP_asli_diterima": 622,
+        "FN_asli_ditolak": 278,
+        "FP_palsu_diterima": 75,
+        "TN_palsu_ditolak": 825,
+        "akurasi": 0.8038888888888889,
+        "presisi_ASLI": 0.8923959827833573,
+        "recall_ASLI": 0.6911111111111111,
+        "spesifisitas": 0.9166666666666666,
+        "F1_ASLI": 0.7789605510331873,
+        "FRR": 0.3088888888888889,
+        "FAR": 0.08333333333333333,
+        "mahir_lolos": 75,
+        "mahir_n": 675,
+        "acak_lolos": 0,
+        "acak_n": 225
+      },
+      "D2": {
+        "batas": 0.4762529134750366,
+        "n": 7800,
+        "TP_asli_diterima": 3351,
+        "FN_asli_ditolak": 549,
+        "FP_palsu_diterima": 826,
+        "TN_palsu_ditolak": 3074,
+        "akurasi": 0.8237179487179487,
+        "presisi_ASLI": 0.8022504189609768,
+        "recall_ASLI": 0.8592307692307692,
+        "spesifisitas": 0.7882051282051282,
+        "F1_ASLI": 0.8297635260616567,
+        "FRR": 0.14076923076923076,
+        "FAR": 0.2117948717948718,
+        "mahir_lolos": 685,
+        "mahir_n": 2925,
+        "acak_lolos": 141,
+        "acak_n": 975
+      },
+      "D3": {
+        "batas": 0.4762529134750366,
+        "n": 2970,
+        "TP_asli_diterima": 455,
+        "FN_asli_ditolak": 115,
+        "FP_palsu_diterima": 510,
+        "TN_palsu_ditolak": 1890,
+        "akurasi": 0.7895622895622896,
+        "presisi_ASLI": 0.47150259067357514,
+        "recall_ASLI": 0.7982456140350878,
+        "spesifisitas": 0.7875,
+        "F1_ASLI": 0.5928338762214984,
+        "FRR": 0.20175438596491227,
+        "FAR": 0.2125,
+        "mahir_lolos": 451,
+        "mahir_n": 1200,
+        "acak_lolos": 59,
+        "acak_n": 1200
+      }
+    },
+    "0.1": {
+      "D1": {
+        "batas": 0.39789336919784546,
+        "n": 1800,
+        "TP_asli_diterima": 502,
+        "FN_asli_ditolak": 398,
+        "FP_palsu_diterima": 36,
+        "TN_palsu_ditolak": 864,
+        "akurasi": 0.7588888888888888,
+        "presisi_ASLI": 0.9330855018587361,
+        "recall_ASLI": 0.5577777777777778,
+        "spesifisitas": 0.96,
+        "F1_ASLI": 0.698191933240612,
+        "FRR": 0.44222222222222224,
+        "FAR": 0.04,
+        "mahir_lolos": 36,
+        "mahir_n": 675,
+        "acak_lolos": 0,
+        "acak_n": 225
+      },
+      "D2": {
+        "batas": 0.39789336919784546,
+        "n": 7800,
+        "TP_asli_diterima": 2989,
+        "FN_asli_ditolak": 911,
+        "FP_palsu_diterima": 409,
+        "TN_palsu_ditolak": 3491,
+        "akurasi": 0.8307692307692308,
+        "presisi_ASLI": 0.879635079458505,
+        "recall_ASLI": 0.7664102564102564,
+        "spesifisitas": 0.8951282051282051,
+        "F1_ASLI": 0.8191285283639353,
+        "FRR": 0.23358974358974358,
+        "FAR": 0.10487179487179488,
+        "mahir_lolos": 339,
+        "mahir_n": 2925,
+        "acak_lolos": 70,
+        "acak_n": 975
+      },
+      "D3": {
+        "batas": 0.39789336919784546,
+        "n": 2970,
+        "TP_asli_diterima": 366,
+        "FN_asli_ditolak": 204,
+        "FP_palsu_diterima": 299,
+        "TN_palsu_ditolak": 2101,
+        "akurasi": 0.8306397306397306,
+        "presisi_ASLI": 0.5503759398496241,
+        "recall_ASLI": 0.6421052631578947,
+        "spesifisitas": 0.8754166666666666,
+        "F1_ASLI": 0.5927125506072876,
+        "FRR": 0.35789473684210527,
+        "FAR": 0.12458333333333334,
+        "mahir_lolos": 282,
+        "mahir_n": 1200,
+        "acak_lolos": 17,
+        "acak_n": 1200
+      }
+    },
+    "0.08": {
+      "D1": {
+        "batas": 0.37744781374931335,
+        "n": 1800,
+        "TP_asli_diterima": 466,
+        "FN_asli_ditolak": 434,
+        "FP_palsu_diterima": 33,
+        "TN_palsu_ditolak": 867,
+        "akurasi": 0.7405555555555555,
+        "presisi_ASLI": 0.9338677354709419,
+        "recall_ASLI": 0.5177777777777778,
+        "spesifisitas": 0.9633333333333334,
+        "F1_ASLI": 0.6661901358112938,
+        "FRR": 0.4822222222222222,
+        "FAR": 0.03666666666666667,
+        "mahir_lolos": 33,
+        "mahir_n": 675,
+        "acak_lolos": 0,
+        "acak_n": 225
+      },
+      "D2": {
+        "batas": 0.37744781374931335,
+        "n": 7800,
+        "TP_asli_diterima": 2865,
+        "FN_asli_ditolak": 1035,
+        "FP_palsu_diterima": 321,
+        "TN_palsu_ditolak": 3579,
+        "akurasi": 0.8261538461538461,
+        "presisi_ASLI": 0.89924670433145,
+        "recall_ASLI": 0.7346153846153847,
+        "spesifisitas": 0.9176923076923077,
+        "F1_ASLI": 0.808636748518205,
+        "FRR": 0.2653846153846154,
+        "FAR": 0.0823076923076923,
+        "mahir_lolos": 269,
+        "mahir_n": 2925,
+        "acak_lolos": 52,
+        "acak_n": 975
+      },
+      "D3": {
+        "batas": 0.37744781374931335,
+        "n": 2970,
+        "TP_asli_diterima": 346,
+        "FN_asli_ditolak": 224,
+        "FP_palsu_diterima": 253,
+        "TN_palsu_ditolak": 2147,
+        "akurasi": 0.8393939393939394,
+        "presisi_ASLI": 0.5776293823038398,
+        "recall_ASLI": 0.6070175438596491,
+        "spesifisitas": 0.8945833333333333,
+        "F1_ASLI": 0.5919589392643285,
+        "FRR": 0.3929824561403509,
+        "FAR": 0.10541666666666667,
+        "mahir_lolos": 243,
+        "mahir_n": 1200,
+        "acak_lolos": 10,
+        "acak_n": 1200
+      }
+    },
+    "0.05": {
+      "D1": {
+        "batas": 0.34331002831459045,
+        "n": 1800,
+        "TP_asli_diterima": 403,
+        "FN_asli_ditolak": 497,
+        "FP_palsu_diterima": 20,
+        "TN_palsu_ditolak": 880,
+        "akurasi": 0.7127777777777777,
+        "presisi_ASLI": 0.9527186761229315,
+        "recall_ASLI": 0.4477777777777778,
+        "spesifisitas": 0.9777777777777777,
+        "F1_ASLI": 0.6092214663643236,
+        "FRR": 0.5522222222222222,
+        "FAR": 0.022222222222222223,
+        "mahir_lolos": 20,
+        "mahir_n": 675,
+        "acak_lolos": 0,
+        "acak_n": 225
+      },
+      "D2": {
+        "batas": 0.34331002831459045,
+        "n": 7800,
+        "TP_asli_diterima": 2602,
+        "FN_asli_ditolak": 1298,
+        "FP_palsu_diterima": 207,
+        "TN_palsu_ditolak": 3693,
+        "akurasi": 0.8070512820512821,
+        "presisi_ASLI": 0.926308294766821,
+        "recall_ASLI": 0.6671794871794872,
+        "spesifisitas": 0.946923076923077,
+        "F1_ASLI": 0.775674467133701,
+        "FRR": 0.33282051282051284,
+        "FAR": 0.05307692307692308,
+        "mahir_lolos": 174,
+        "mahir_n": 2925,
+        "acak_lolos": 33,
+        "acak_n": 975
+      },
+      "D3": {
+        "batas": 0.34331002831459045,
+        "n": 2970,
+        "TP_asli_diterima": 311,
+        "FN_asli_ditolak": 259,
+        "FP_palsu_diterima": 191,
+        "TN_palsu_ditolak": 2209,
+        "akurasi": 0.8484848484848485,
+        "presisi_ASLI": 0.6195219123505976,
+        "recall_ASLI": 0.5456140350877193,
+        "spesifisitas": 0.9204166666666667,
+        "F1_ASLI": 0.580223880597015,
+        "FRR": 0.4543859649122807,
+        "FAR": 0.07958333333333334,
+        "mahir_lolos": 188,
+        "mahir_n": 1200,
+        "acak_lolos": 3,
+        "acak_n": 1200
+      }
+    }
+  },
+  "threshold_per_k": {
+    "1": 0.37744781374931335,
+    "2": 0.33957597613334656,
+    "3": 0.3258904814720154,
+    "4": 0.3142397403717041,
+    "5": 0.30504727363586426
+  },
+  "konsistensi_pembanding": {
+    "2": 0.5925049066543578,
+    "3": 0.5469275772571563,
+    "4": 0.5138870567083359,
+    "5": 0.4920514121651649
+  },
+  "skor_k": "min",
+  "metrik_per_k": {
+    "1": {
+      "D1": {
+        "FAR_skilled_forgery": 0.04722222222222222,
+        "FAR_random_forgery": 0.0004830917874396135,
+        "FRR": 0.49033816425120774
+      },
+      "D2": {
+        "FAR_skilled_forgery": 0.08452991452991453,
+        "FAR_random_forgery": 0.0536231884057971,
+        "FRR": 0.25769230769230766
+      },
+      "D3": {
+        "FAR_skilled_forgery": 0.20916666666666667,
+        "FAR_random_forgery": 0.009166666666666667,
+        "FRR": 0.37894736842105264
+      }
+    },
+    "2": {
+      "D1": {
+        "FAR_skilled_forgery": 0.0412037037037037,
+        "FAR_random_forgery": 0.0002525252525252525,
+        "FRR": 0.3936868686868687
+      },
+      "D2": {
+        "FAR_skilled_forgery": 0.07837606837606838,
+        "FAR_random_forgery": 0.05040792540792541,
+        "FRR": 0.20833333333333334
+      },
+      "D3": {
+        "FAR_skilled_forgery": 0.22083333333333333,
+        "FAR_random_forgery": 0.0016666666666666668,
+        "FRR": 0.3148148148148148
+      }
+    },
+    "3": {
+      "D1": {
+        "FAR_skilled_forgery": 0.05115740740740741,
+        "FAR_random_forgery": 0.00026455026455026457,
+        "FRR": 0.36772486772486773
+      },
+      "D2": {
+        "FAR_skilled_forgery": 0.08004273504273504,
+        "FAR_random_forgery": 0.051892551892551896,
+        "FRR": 0.17417582417582417
+      },
+      "D3": {
+        "FAR_skilled_forgery": 0.22416666666666665,
+        "FAR_random_forgery": 0.0,
+        "FRR": 0.25392156862745097
+      }
+    },
+    "4": {
+      "D1": {
+        "FAR_skilled_forgery": 0.05023148148148148,
+        "FAR_random_forgery": 0.0,
+        "FRR": 0.3388888888888889
+      },
+      "D2": {
+        "FAR_skilled_forgery": 0.07641025641025641,
+        "FAR_random_forgery": 0.04903846153846154,
+        "FRR": 0.1596153846153846
+      },
+      "D3": {
+        "FAR_skilled_forgery": 0.21666666666666667,
+        "FAR_random_forgery": 0.0,
+        "FRR": 0.25625
+      }
+    },
+    "5": {
+      "D1": {
+        "FAR_skilled_forgery": 0.043287037037037034,
+        "FAR_random_forgery": 0.0,
+        "FRR": 0.312280701754386
+      },
+      "D2": {
+        "FAR_skilled_forgery": 0.07316239316239316,
+        "FAR_random_forgery": 0.04730094466936572,
+        "FRR": 0.15087719298245614
+      },
+      "D3": {
+        "FAR_skilled_forgery": 0.2225,
+        "FAR_random_forgery": 0.0,
+        "FRR": 0.27666666666666667
+      }
+    }
+  },
+  "target_far_per_k": 0.08,
+  "status_akhir": {
+    "D1": {
+      "FAR_keputusan_model": 0.03666666666666667,
+      "FAR_status_ASLI": 0.005555555555555556,
+      "FAR_status_ASLI_mahir": 0.007407407407407408,
+      "asli_dikenali_ASLI": 0.21,
+      "asli_jadi_BELUM_YAKIN_atau_PALSU": 0.79,
+      "n": 1800
+    },
+    "D2": {
+      "FAR_keputusan_model": 0.0823076923076923,
+      "FAR_status_ASLI": 0.011538461538461539,
+      "FAR_status_ASLI_mahir": 0.011282051282051283,
+      "asli_dikenali_ASLI": 0.48256410256410254,
+      "asli_jadi_BELUM_YAKIN_atau_PALSU": 0.5174358974358975,
+      "n": 7800
+    },
+    "D3": {
+      "FAR_keputusan_model": 0.10541666666666667,
+      "FAR_status_ASLI": 0.014166666666666666,
+      "FAR_status_ASLI_mahir": 0.028333333333333332,
+      "asli_dikenali_ASLI": 0.18596491228070175,
+      "asli_jadi_BELUM_YAKIN_atau_PALSU": 0.8140350877192982,
+      "n": 2970
+    }
+  },
+  "fusi": {
+    "fitur": [
+      "jarak_model",
+      "rasio_lebar_tinggi",
+      "kepadatan_tinta",
+      "kemiringan",
+      "ketebalan_goresan",
+      "jumlah_bagian",
+      "panjang_goresan",
+      "posisi_x",
+      "posisi_y"
+    ],
+    "mean": [
+      0.5074911987567519,
+      0.142439303589389,
+      0.1480222700474037,
+      2.909672456403124,
+      0.14310860464844954,
+      0.3580541913443846,
+      0.10169851232886566,
+      0.021906093798630625,
+      0.03418491411927744
+    ],
+    "scale": [
+      0.2818082738996035,
+      0.1546057768839207,
+      0.1432117476644928,
+      6.687712354548899,
+      0.14010416348239693,
+      0.3483101045441066,
+      0.10004665911568153,
+      0.022296468537908995,
+      0.03084413118089003
+    ],
+    "coef": [
+      2.367708206176758,
+      0.2538415193557739,
+      -0.10408575087785721,
+      0.07834476232528687,
+      0.9329767227172852,
+      0.7184831500053406,
+      0.5222975015640259,
+      0.06500411033630371,
+      0.14555521309375763
+    ],
+    "intercept": 0.5522804260253906,
+    "threshold": -0.8885373473167419,
+    "hasil": [
+      {
+        "dataset": "D1",
+        "skenario": "model saja",
+        "AUC": 0.9178901234567901,
+        "EER": 0.16333333333333333,
+        "akurasi": 0.7405555555555555,
+        "FAR_mahir": 0.04888888888888889,
+        "FRR": 0.4822222222222222
+      },
+      {
+        "dataset": "D1",
+        "skenario": "fusi (model+ciri)",
+        "AUC": 0.9101135802469136,
+        "EER": 0.15999999999999998,
+        "akurasi": 0.7183333333333334,
+        "FAR_mahir": 0.07407407407407407,
+        "FRR": 0.5077777777777778
+      },
+      {
+        "dataset": "D2",
+        "skenario": "model saja",
+        "AUC": 0.9115899408284024,
+        "EER": 0.16769230769230775,
+        "akurasi": 0.8261538461538461,
+        "FAR_mahir": 0.09196581196581197,
+        "FRR": 0.2653846153846154
+      },
+      {
+        "dataset": "D2",
+        "skenario": "fusi (model+ciri)",
+        "AUC": 0.928050493096647,
+        "EER": 0.15141025641025635,
+        "akurasi": 0.8451282051282051,
+        "FAR_mahir": 0.09196581196581197,
+        "FRR": 0.22794871794871796
+      },
+      {
+        "dataset": "D3",
+        "skenario": "model saja",
+        "AUC": 0.8765190058479532,
+        "EER": 0.20684210526315788,
+        "akurasi": 0.8393939393939394,
+        "FAR_mahir": 0.2025,
+        "FRR": 0.3929824561403509
+      },
+      {
+        "dataset": "D3",
+        "skenario": "fusi (model+ciri)",
+        "AUC": 0.8770219298245613,
+        "EER": 0.19937499999999997,
+        "akurasi": 0.8602693602693603,
+        "FAR_mahir": 0.04416666666666667,
+        "FRR": 0.6333333333333333
+      }
+    ]
+  },
+  "forensik_batas": {
+    "rasio_lebar_tinggi": [
+      0.16164040565490723,
+      0.33062708377838135
+    ],
+    "kepadatan_tinta": [
+      0.19887414574623108,
+      0.6005693674087524
+    ],
+    "kemiringan": [
+      4.912771224975586,
+      10.766520500183105
+    ],
+    "ketebalan_goresan": [
+      0.19816258549690247,
+      0.8340747952461243
+    ],
+    "jumlah_bagian": [
+      0.40538179874420166,
+      0.9159908294677734
+    ],
+    "panjang_goresan": [
+      0.117266446352005,
+      0.303745299577713
+    ],
+    "posisi_x": [
+      0.022717587649822235,
+      0.05066768825054169
+    ],
+    "posisi_y": [
+      0.04217229783535004,
+      0.09234170615673065
+    ]
+  },
+  "goyang": {
+    "n": 6,
+    "ragu_z": 1.204238772392273,
+    "ragu_margin": 0.075716532766819,
+    "abstain_frac": 0.2,
+    "hasil": {
+      "D1": {
+        "akurasi_semua": 0.7405555555555555,
+        "akurasi_yakin": 0.7575332866152769,
+        "akurasi_ragu": 0.675603217158177,
+        "porsi_ragu": 0.20722222222222222,
+        "FAR_semua": 0.03666666666666667,
+        "FAR_hanya_yakin": 0.008888888888888889
+      },
+      "D2": {
+        "akurasi_semua": 0.8261538461538461,
+        "akurasi_yakin": 0.865063788027478,
+        "akurasi_ragu": 0.6850533807829181,
+        "porsi_ragu": 0.21615384615384614,
+        "FAR_semua": 0.0823076923076923,
+        "FAR_hanya_yakin": 0.027435897435897437
+      },
+      "D3": {
+        "akurasi_semua": 0.8393939393939394,
+        "akurasi_yakin": 0.8907496012759171,
+        "akurasi_ragu": 0.5606060606060606,
+        "porsi_ragu": 0.15555555555555556,
+        "FAR_semua": 0.10541666666666667,
+        "FAR_hanya_yakin": 0.05125
+      }
+    }
+  },
+  "banyak_pembanding": {
+    "D1": {
+      "1": {
+        "auc": 0.9366942759904524,
+        "eer": 0.13864991263233634,
+        "FAR": 0.04722222222222222,
+        "FRR": 0.49033816425120774
+      },
+      "2": {
+        "auc": 0.9548944151661544,
+        "eer": 0.11660628019323671,
+        "FAR": 0.0412037037037037,
+        "FRR": 0.3936868686868687
+      },
+      "3": {
+        "auc": 0.9574610033313736,
+        "eer": 0.10932098765432097,
+        "FAR": 0.05115740740740741,
+        "FRR": 0.36772486772486773
+      },
+      "4": {
+        "auc": 0.961825301627385,
+        "eer": 0.10324494949494945,
+        "FAR": 0.05023148148148148,
+        "FRR": 0.3388888888888889
+      },
+      "5": {
+        "auc": 0.9682052299137162,
+        "eer": 0.08681490548075615,
+        "FAR": 0.043287037037037034,
+        "FRR": 0.312280701754386
+      }
+    },
+    "D2": {
+      "1": {
+        "auc": 0.9249822899154792,
+        "eer": 0.1545071622389096,
+        "FAR": 0.08452991452991453,
+        "FRR": 0.25769230769230766
+      },
+      "2": {
+        "auc": 0.9481450119366169,
+        "eer": 0.12613748431056127,
+        "FAR": 0.07837606837606838,
+        "FRR": 0.20833333333333334
+      },
+      "3": {
+        "auc": 0.9575103867977172,
+        "eer": 0.11472204266321917,
+        "FAR": 0.08004273504273504,
+        "FRR": 0.17417582417582417
+      },
+      "4": {
+        "auc": 0.9628835445430639,
+        "eer": 0.10653846153846153,
+        "FAR": 0.07641025641025641,
+        "FRR": 0.1596153846153846
+      },
+      "5": {
+        "auc": 0.9666446847606478,
+        "eer": 0.10047164614833792,
+        "FAR": 0.07316239316239316,
+        "FRR": 0.15087719298245614
+      }
+    },
+    "D3": {
+      "1": {
+        "auc": 0.9143820662768032,
+        "eer": 0.16040204678362568,
+        "FAR": 0.20916666666666667,
+        "FRR": 0.37894736842105264
+      },
+      "2": {
+        "auc": 0.9265527263374486,
+        "eer": 0.1556944444444444,
+        "FAR": 0.22083333333333333,
+        "FRR": 0.3148148148148148
+      },
+      "3": {
+        "auc": 0.9370103485838779,
+        "eer": 0.1410049019607843,
+        "FAR": 0.22416666666666665,
+        "FRR": 0.25392156862745097
+      },
+      "4": {
+        "auc": 0.9398868634259259,
+        "eer": 0.13107638888888884,
+        "FAR": 0.21666666666666667,
+        "FRR": 0.25625
+      },
+      "5": {
+        "auc": 0.9419256172839506,
+        "eer": 0.13319444444444445,
+        "FAR": 0.2225,
+        "FRR": 0.27666666666666667
+      }
+    }
+  }
+}
