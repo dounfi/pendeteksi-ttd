@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type ElementType } from "react";
 import { cn } from "@/lib/utils";
 
-/** Fades content up (300ms) once it enters the viewport. Respects reduced motion via CSS. */
 export function Reveal({
   children,
   className,
@@ -14,33 +13,42 @@ export function Reveal({
   delay?: number;
 }) {
   const ref = useRef<HTMLElement | null>(null);
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight) return; // already on screen: stay visible
-    setVisible(false);
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
+    if (!el) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
           setVisible(true);
-          io.disconnect();
+          observer.unobserve(el);
         }
       },
-      { rootMargin: "0px 0px -10% 0px" },
+      { threshold: 0.1, rootMargin: "0px 0px -20px 0px" }
     );
-    io.observe(el);
-    return () => io.disconnect();
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (
     <Tag
       ref={ref}
-      data-visible={visible ? "true" : "false"}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
-      className={cn("reveal", className)}
+      style={{
+        transitionDelay: visible ? `${delay}ms` : "0ms",
+      }}
+      className={cn(
+        "transition-all duration-700 ease-out",
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
+        className
+      )}
     >
       {children}
     </Tag>

@@ -210,39 +210,4 @@ export function markerPosition(r: Pick<VerifyResult, "distance" | "scale">): num
   return Math.min(100, Math.max(0, p));
 }
 
-const OFFLINE =
-  "Sistem pemeriksaan belum dapat dihubungi. Periksa koneksi internet Anda, lalu coba lagi beberapa saat lagi.";
 
-export async function verifySignatures(references: File[], query: File): Promise<VerifyResult> {
-  const body = new FormData();
-  body.append("qry_image", query);
-  references.forEach((f) => body.append("ref_images", f));
-  let res: Response;
-  try {
-    res = await fetch(VERIFY_URL, { method: "POST", body });
-  } catch {
-    throw new Error(OFFLINE);
-  }
-  let json: unknown = null;
-  try {
-    json = await res.json();
-  } catch {
-    json = null;
-  }
-  if (!res.ok) {
-    const detail = isObj(json) ? pick(json, "detail", "error", "message") : undefined;
-    throw new Error(typeof detail === "string" && detail.trim() ? detail : OFFLINE);
-  }
-  if (json === null) throw new Error("Hasil pemeriksaan tidak dapat ditampilkan. Silakan coba lagi.");
-  return parseVerifyResponse(json);
-}
-
-export async function fetchModelInfo(): Promise<{ label: string; value: string }[]> {
-  try {
-    const res = await fetch(MODEL_INFO_URL);
-    if (!res.ok) return [];
-    return parseModelInfo(await res.json());
-  } catch {
-    return [];
-  }
-}

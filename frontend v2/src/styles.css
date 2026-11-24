@@ -1009,6 +1009,188 @@
   .footer-logo-box { width: 100%; justify-content: center; }
   .footer-copy { text-align: center; padding-right: 0; }
 }
+/* ============================================================
+   SIDIKTA Brand & UI Extensions (Added for New Components)
+   No gradients, no deletions from v2 styles.
+   ============================================================ */
 
+:root {
+  /* Brand palette */
+  --primary-700: oklch(0.485 0.133 254.6); /* #1F5FA8 */
+  --primary-600: oklch(0.548 0.127 241.8); /* #0978B4 */
+  --primary-500: oklch(0.609 0.114 231.6); /* #218EBB */
+  --primary-400: oklch(0.671 0.102 222.8); /* #3FA3C3 */
+  --primary-300: oklch(0.722 0.086 215.3); /* #60B3C7 */
+  --primary-200: oklch(0.782 0.066 203.3); /* #85C5CB */
+  --background: #FFFFFF;
 
+  --surface-50: oklch(0.977 0.007 247.9); /* #F4F8FC */
+  --surface-100: oklch(0.943 0.013 251.6); /* #E6EDF5 */
+  --surface-200: oklch(0.889 0.021 248.1); /* #D0DCE8 */
+  --tentang-card: oklch(0.821 0.056 224.6); /* #9ECDE0 */
+  --heading: oklch(0.264 0.068 255.3); /* #0B2545 */
+  --body: oklch(0.388 0.041 237.3); /* #2F4858 */
+  --on-brand: oklch(1 0 0);
 
+  --status-asli: oklch(0.621 0.141 152.7); /* #2E9E5B */
+  --status-asli-tint: oklch(0.841 0.09 156.4); /* #9ADDB3 */
+  --status-ragu: oklch(0.764 0.115 89.9); /* #CFAF55 */
+  --status-ragu-tint: oklch(0.847 0.053 94.1); /* #D8CDA6 */
+  --status-palsu: oklch(0.613 0.154 21.3); /* #D0575A */
+  --status-palsu-tint: oklch(0.76 0.067 12.8); /* #D8A0A5 */
+  --status-asli-ink: oklch(0.48 0.12 152.7);
+  --status-ragu-ink: oklch(0.48 0.09 85);
+  --status-palsu-ink: oklch(0.5 0.16 21.3);
+
+  --radius-card: 16px;
+  --radius-panel: 24px;
+  --shadow-nav: 0 1px 3px color-mix(in oklab, var(--heading) 8%, transparent);
+  --section-y: 64px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --section-y: 96px;
+  }
+}
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Work Sans", sans-serif;
+  --font-display: "Plus Jakarta Sans", "Work Sans", sans-serif;
+
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-card: 16px;
+  --radius-panel: 24px;
+
+  /* Brand scale */
+  --color-primary-700: var(--primary-700);
+  --color-primary-600: var(--primary-600);
+  --color-primary-500: var(--primary-500);
+  --color-primary-400: var(--primary-400);
+  --color-primary-300: var(--primary-300);
+  --color-primary-200: var(--primary-200);
+
+  /* Surfaces & text */
+  --color-surface-50: var(--surface-50);
+  --color-surface-100: var(--surface-100);
+  --color-surface-200: var(--surface-200);
+  --color-tentang-card: var(--tentang-card);
+  --color-heading: var(--heading);
+  --color-body: var(--body);
+  --color-on-brand: var(--on-brand);
+
+  /* Result status */
+  --color-status-asli: var(--status-asli);
+  --color-status-asli-tint: var(--status-asli-tint);
+  --color-status-ragu: var(--status-ragu);
+  --color-status-ragu-tint: var(--status-ragu-tint);
+  --color-status-palsu: var(--status-palsu);
+  --color-status-palsu-tint: var(--status-palsu-tint);
+  --color-status-asli-ink: var(--status-asli-ink);
+  --color-status-ragu-ink: var(--status-ragu-ink);
+  --color-status-palsu-ink: var(--status-palsu-ink);
+}
+
+/* Typography utilities */
+@utility text-display {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+@utility text-section {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+@utility eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--primary-600);
+  line-height: 1.4;
+}
+
+@utility section-y {
+  padding-top: var(--section-y);
+  padding-bottom: var(--section-y);
+}
+
+/* Cards (flat: 1px border, 16px radius, no shadow) */
+@utility card {
+  background: var(--background);
+  border: 1px solid var(--surface-200);
+  border-radius: var(--radius-card);
+}
+
+@utility card-soft {
+  background: var(--surface-50);
+  border: 1px solid var(--surface-200);
+  border-radius: var(--radius-card);
+}
+
+@utility card-muted {
+  background: var(--surface-100);
+  border: 1px solid var(--surface-200);
+  border-radius: var(--radius-card);
+}
+
+@utility shadow-nav {
+  box-shadow: var(--shadow-nav);
+}
+
+/* Decoration (border-based dashed lines, no gradients) */
+@utility dashed-line {
+  border-top: 2px dashed var(--primary-500);
+  background: none;
+}
+
+@utility dashed-line-y {
+  border-left: 2px dashed var(--primary-500);
+  background: none;
+}
+
+/* Motion */
+@utility lift {
+  transition: border-color 150ms ease;
+
+  &:hover {
+    border-color: var(--primary-300);
+  }
+}
+
+@utility reveal {
+  display: block;
+}
+
+/* Loading placeholders: solid surface-200 blocks with opacity pulse (no gradients) */
+@utility skeleton {
+  border-radius: 16px;
+  background: var(--surface-200);
+}
+
+@utility shimmer {
+  border-radius: 16px;
+  background: var(--surface-200);
+  animation: soft-pulse 1.6s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
