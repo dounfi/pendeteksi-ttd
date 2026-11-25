@@ -1194,3 +1194,127 @@
     opacity: 0.55;
   }
 }
+
+/* SIDIKTA Signature Forensics Upload & Comparison Animations */
+@keyframes doc-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.86) rotate(-2.5deg) translateY(10px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03) rotate(0.8deg) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg) translateY(0);
+  }
+}
+
+@keyframes scan-flash {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes paper-sheen {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.75;
+  }
+  80% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes caliper-lock {
+  0% {
+    transform: scale(1.16);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.02);
+    opacity: 0.45;
+  }
+}
+
+@keyframes magnifier-orbit {
+  0% {
+    transform: translate(-34px, -14px) scale(0.96);
+  }
+  25% {
+    transform: translate(30px, -18px) scale(1.04);
+  }
+  50% {
+    transform: translate(38px, 14px) scale(1);
+  }
+  75% {
+    transform: translate(-24px, 18px) scale(1.05);
+  }
+  100% {
+    transform: translate(-34px, -14px) scale(0.96);
+  }
+}
+
+@keyframes vector-flow {
+  0% {
+    stroke-dashoffset: 36;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-doc-pop {
+  animation: doc-pop 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-scan-flash {
+  animation: scan-flash 0.4s ease-out forwards;
+}
+
+.animate-paper-sheen {
+  animation: paper-sheen 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-caliper-lock {
+  animation: caliper-lock 1.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-magnifier-orbit {
+  animation: magnifier-orbit 3.4s ease-in-out infinite;
+}
+
+.animate-vector-flow {
+  stroke-dasharray: 6 6;
+  animation: vector-flow 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-doc-pop,
+  .animate-scan-flash,
+  .animate-paper-sheen,
+  .animate-caliper-lock,
+  .animate-magnifier-orbit,
+  .animate-vector-flow {
+    animation: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { ScanFrame } from "./periksa/SignatureScanStage";
 
 /* ================================================================
    ICONS (STRICTLY NO EMOJI - CLEAN SVG ONLY)
@@ -282,6 +283,7 @@ function TabUpload({ onApply }: { onApply: (dataUrl: string) => void }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadScanKey, setUploadScanKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file: File) => {
@@ -293,6 +295,7 @@ function TabUpload({ onApply }: { onApply: (dataUrl: string) => void }) {
     const reader = new FileReader();
     reader.onload = () => {
       setPreview(reader.result as string);
+      setUploadScanKey((k) => k + 1);
     };
     reader.readAsDataURL(file);
   };
@@ -338,13 +341,16 @@ function TabUpload({ onApply }: { onApply: (dataUrl: string) => void }) {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="aspect-[16/9] max-h-72 w-full bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-center overflow-hidden shadow-xs relative">
-            <img
+          <div className="aspect-[16/9] max-h-72 w-full bg-white rounded-2xl border border-slate-200 p-3 flex items-center justify-center overflow-hidden shadow-xs relative">
+            <ScanFrame
               src={preview}
               alt="Pratinjau tanda tangan"
-              className="max-h-full max-w-full object-contain filter contrast-125"
+              scanMode="once"
+              popKey={uploadScanKey}
+              className="h-full w-full rounded-xl bg-white"
+              imgClassName="filter contrast-125"
             />
-            <span className="absolute bottom-3 left-4 text-[11px] font-semibold bg-slate-900/70 text-white px-2.5 py-1 rounded-md backdrop-blur-xs">
+            <span className="absolute bottom-3 left-4 z-10 text-[11px] font-semibold bg-slate-900/75 text-white px-2.5 py-1 rounded-md backdrop-blur-xs">
               {fileName}
             </span>
           </div>
@@ -446,6 +452,7 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
   const [streamActive, setStreamActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [snapScanKey, setSnapScanKey] = useState(0);
 
   // Start webcam
   const startCamera = useCallback(async () => {
@@ -559,6 +566,7 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
     ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     setSnapIssues(analyzeFrame(canvas, canvas.width, canvas.height));
     setCapturedImage(canvas.toDataURL("image/png"));
+    setSnapScanKey((k) => k + 1);
     stopCamera();
   };
 
@@ -628,11 +636,14 @@ function TabCamera({ onApply }: { onApply: (dataUrl: string) => void }) {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="aspect-[16/9] max-h-80 w-full bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-center overflow-hidden shadow-xs">
-            <img
+          <div className="aspect-[16/9] max-h-80 w-full bg-white rounded-2xl border border-slate-200 p-3 flex items-center justify-center overflow-hidden shadow-xs">
+            <ScanFrame
               src={capturedImage}
               alt="Hasil foto kamera"
-              className="max-h-full max-w-full object-contain filter contrast-125"
+              scanMode="once"
+              popKey={snapScanKey}
+              className="h-full w-full rounded-xl bg-white"
+              imgClassName="filter contrast-125"
             />
           </div>
 

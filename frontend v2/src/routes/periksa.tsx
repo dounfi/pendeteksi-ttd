@@ -8,6 +8,7 @@ import { useModelInfo } from "../hooks/useModelInfo";
 import { ResultCard, type CheckState } from "@/components/periksa/ResultCard";
 import { ExplanationPanel } from "@/components/periksa/ExplanationPanel";
 import { ModelInfo } from "@/components/periksa/ModelInfo";
+import { ScanFrame, VerificationScanOverlay } from "@/components/periksa/SignatureScanStage";
 import { parseVerifyResponse, parseModelInfo, type VerifyResult } from "@/lib/verify";
 import { BRAND } from "@/lib/brand";
 
@@ -185,6 +186,12 @@ function PeriksaPage() {
   const [refTab, setRefTab] = useState<InputTab>("upload");
   const [qryTab, setQryTab] = useState<InputTab>("upload");
 
+  // ---- Scan animation state ----
+  const [qryScanKey, setQryScanKey] = useState(0);
+  const [refScanKey, setRefScanKey] = useState(0);
+  const [refHighlightFrom, setRefHighlightFrom] = useState(0);
+  const [scanSampleUrls, setScanSampleUrls] = useState<{ refUrl: string; qryUrl: string } | undefined>(undefined);
+
   // ---- Modal ----
   const [modalTarget, setModalTarget] = useState<"ref" | "qry" | null>(null);
   const [modalTab, setModalTab] = useState<InputTab>("upload");
@@ -236,6 +243,7 @@ function PeriksaPage() {
       const err = validateFile(file);
       if (err) { setErrorMsg(err); return; }
       setQryImage(await readFileAsDataUrl(file));
+      setQryScanKey((k) => k + 1);
       setQryTab("upload");
       setResult(null);
       setErrorMsg(null);
@@ -244,7 +252,8 @@ function PeriksaPage() {
 
   // Tambah beberapa pembanding sekaligus (maks. 5 total); file tidak valid dilewati dengan pesan.
   const addRefFiles = async (files: File[]) => {
-    const slot = 5 - refImages.length;
+    const startIdx = refImages.length;
+    const slot = 5 - startIdx;
     if (slot <= 0) {
       setErrorMsg("Maks. 5 tanda tangan pembanding. Harap hapus beberapa.");
       return;
@@ -259,7 +268,11 @@ function PeriksaPage() {
     if (files.length > slot) {
       pesan = `Hanya ${slot} file pertama yang dipakai (maks. 5 pembanding).`;
     }
-    if (diterima.length > 0) setRefImages((prev) => [...prev, ...diterima].slice(0, 5));
+    if (diterima.length > 0) {
+      setRefHighlightFrom(startIdx);
+      setRefScanKey((k) => k + 1);
+      setRefImages((prev) => [...prev, ...diterima].slice(0, 5));
+    }
     setResult(null);
     setErrorMsg(pesan);
   };
@@ -277,6 +290,7 @@ function PeriksaPage() {
     const err = validateFile(file);
     if (err) { setErrorMsg(err); return; }
     setQryImage(await readFileAsDataUrl(file));
+    setQryScanKey((k) => k + 1);
     setResult(null);
     setErrorMsg(null);
   };
@@ -365,6 +379,10 @@ function PeriksaPage() {
     setSampleResult(null);
     setShowSampleGT(false);
     setActiveSampleId(pair.id);
+    setScanSampleUrls({
+      refUrl: `http://127.0.0.1:8000/api/sample-image/${pair.ref_file}`,
+      qryUrl: `http://127.0.0.1:8000/api/sample-image/${pair.qry_file}`,
+    });
 
     try {
       const [refB64, qryB64] = await Promise.all([
@@ -396,6 +414,7 @@ function PeriksaPage() {
       }
     } finally {
       setSampleLoading(false);
+      setScanSampleUrls(undefined);
     }
   };
 
@@ -405,6 +424,10 @@ function PeriksaPage() {
   const handleReset = () => {
     setRefImages([]);
     setQryImage(null);
+    setQryScanKey(0);
+    setRefScanKey(0);
+    setRefHighlightFrom(0);
+    setScanSampleUrls(undefined);
     setRefTab("upload");
     setQryTab("upload");
     setResult(null);
@@ -502,6 +525,14 @@ function PeriksaPage() {
         className="hidden"
       />
 
+      {/* Meja Pemeriksaan Forensik saat memverifikasi */}
+      <VerificationScanOverlay
+        isOpen={isLoading || sampleLoading}
+        refImageSrc={isLoading ? refImages[0] : scanSampleUrls?.refUrl}
+        qryImageSrc={isLoading ? (qryImage ?? undefined) : scanSampleUrls?.qryUrl}
+        refCount={isLoading ? refImages.length : 1}
+      />
+
       {/* Signature Input Modal */}
       <SignatureInputModal
         isOpen={isModalOpen}
@@ -513,11 +544,14 @@ function PeriksaPage() {
             if (refImages.length >= 5) {
               setErrorMsg("Maks. 5 tanda tangan pembanding. Harap hapus beberapa.");
             } else {
+              setRefHighlightFrom(refImages.length);
+              setRefScanKey((k) => k + 1);
               setRefImages((prev) => [...prev, dataUrl]);
               setRefTab(modalTab);
             }
           } else {
             setQryImage(dataUrl);
+            setQryScanKey((k) => k + 1);
             setQryTab(modalTab);
           }
           setResult(null);
@@ -586,20 +620,33 @@ function PeriksaPage() {
                 >
                   {refImages.length > 0 ? (
                     <div className="w-full flex flex-col gap-2.5 overflow-y-auto max-h-[240px] pr-0.5">
-                      {refImages.map((img, idx) => (
-                        <div key={idx} className="relative flex-shrink-0 h-14 bg-white border border-slate-200/90 rounded-xl flex items-center px-3 gap-3 shadow-xs">
-                          <img src={img} alt={`Asli ${idx + 1}`} className="h-10 w-14 object-contain rounded bg-white border border-slate-200" />
-                          <span className="text-xs font-semibold text-[#010211] flex-1 text-left">Foto Asli {idx + 1}</span>
-                          <button
-                            type="button"
-                            onClick={(ev) => { ev.stopPropagation(); removeRef(idx); }}
-                            className="p-1 rounded-md text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
-                            aria-label={`Hapus pembanding ${idx + 1}`}
+                      {refImages.map((img, idx) => {
+                        const isNew = idx >= refHighlightFrom && refScanKey > 0;
+                        return (
+                          <div
+                            key={`${idx}-${isNew ? refScanKey : 0}`}
+                            className={`relative flex-shrink-0 h-14 bg-white border border-slate-200/90 rounded-xl flex items-center px-3 gap-3 shadow-xs ${isNew ? "animate-doc-pop" : ""}`}
                           >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
+                            <ScanFrame
+                              src={img}
+                              alt={`Asli ${idx + 1}`}
+                              compact
+                              scanMode={isNew ? "once" : "off"}
+                              popKey={isNew ? refScanKey : 0}
+                              className="h-10 w-14 shrink-0 rounded bg-white border border-slate-200"
+                            />
+                            <span className="text-xs font-semibold text-[#010211] flex-1 text-left">Foto Asli {idx + 1}</span>
+                            <button
+                              type="button"
+                              onClick={(ev) => { ev.stopPropagation(); removeRef(idx); }}
+                              className="p-1 rounded-md text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+                              aria-label={`Hapus pembanding ${idx + 1}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
                       {refImages.length < 5 && (
                         <button
                           type="button"
@@ -679,8 +726,14 @@ function PeriksaPage() {
                   className={`group rounded-2xl border-2 border-dashed border-[#3FA3C3]/60 bg-[#F4F9FD]/60 hover:border-[#1E65AB] hover:bg-[#F0F7FC] transition-all p-6 flex flex-col items-center justify-center text-center min-h-[220px] ${!qryImage ? "cursor-pointer" : ""}`}
                 >
                   {qryImage ? (
-                    <div className="relative w-full h-[180px] bg-white rounded-xl p-2.5 flex items-center justify-center border border-slate-200 shadow-xs">
-                      <img src={qryImage} alt="Tanda Tangan yang Diperiksa" className="w-full h-full object-contain" />
+                    <div className="relative w-full h-[180px] bg-white rounded-xl p-2 flex items-center justify-center border border-slate-200 shadow-xs overflow-hidden">
+                      <ScanFrame
+                        src={qryImage}
+                        alt="Tanda Tangan yang Diperiksa"
+                        scanMode={qryScanKey > 0 ? "once" : "off"}
+                        popKey={qryScanKey}
+                        className="h-full w-full rounded-lg bg-white"
+                      />
                     </div>
                   ) : (
                     <>
