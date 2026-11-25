@@ -10,15 +10,15 @@ export function Logo({ className, tone = "brand" }: { className?: string; tone?:
           d="M10 6c-2 6-1 16 1 22 1 3 3 3 4 0 1-4 0-9 2-10 2-1 2 4 3 6 1 2 3 1 4-1 1-2 2-3 3-1 1 2 3 2 6 0"
           fill="none"
           stroke="var(--primary-600)"
-          strokeWidth="3"
+          strokeWidth="3.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <path d="M8 34h24" stroke="var(--primary-600)" strokeWidth="3" strokeLinecap="round" />
+        <path d="M8 34h24" stroke="var(--primary-600)" strokeWidth="3.5" strokeLinecap="round" />
       </svg>
       <span
         className={cn(
-          "text-lg font-bold tracking-tight",
+          "text-xl font-extrabold tracking-tight",
           tone === "brand" ? "text-primary-700" : "text-on-brand",
         )}
       >

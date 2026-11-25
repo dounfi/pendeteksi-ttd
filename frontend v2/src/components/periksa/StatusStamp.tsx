@@ -14,10 +14,10 @@ export function StatusStamp({ status }: { status: VerifyStatus }) {
   const [first, ...rest] = STAMP_LABEL[status].split(" ");
   const two = rest.length > 0 && first === "KEMUNGKINAN";
   return (
-    <div className="grid w-full place-items-center rounded-xl border border-surface-200 bg-background p-4 sm:w-44">
+    <div className="flex items-center justify-center py-1">
       <div
         className={cn(
-          "-rotate-6 flex items-center gap-2 rounded-lg border-[3px] px-3 py-2",
+          "-rotate-6 inline-flex items-center gap-2.5 rounded-2xl border-[3px] bg-white px-4 py-2.5 shadow-xs transition-transform hover:rotate-0",
           border,
           ink,
         )}
@@ -26,7 +26,7 @@ export function StatusStamp({ status }: { status: VerifyStatus }) {
         <p className="text-center font-bold leading-none">
           {two ? (
             <>
-              <span className="block text-[11px] tracking-[0.16em]">{first}</span>
+              <span className="block text-[11px] tracking-[0.16em] uppercase">{first}</span>
               <span className="mt-1 block text-2xl tracking-wide">{rest.join(" ")}</span>
             </>
           ) : (

@@ -37,23 +37,22 @@ export function Features() {
           <Reveal>
             <SectionHeading
               number="02"
-              label="Keunggulan"
+              label="KEUNGGULAN"
               title={`Keunggulan ${BRAND.name}`}
               id="keunggulan-title"
-              eyebrowClassName="text-primary-700"
             />
           </Reveal>
 
           <ul className="mt-10 grid gap-5 md:grid-cols-2 md:gap-6">
             {features.map(({ icon: Icon, title, body }, i) => (
-              <Reveal as="li" key={title} delay={i * 60}>
-                <article className="card lift flex h-full gap-4 p-6 sm:gap-5 sm:p-7">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary-200">
-                    <Icon className="h-6 w-6 text-primary-700" aria-hidden="true" />
+              <Reveal as="li" key={title} delay={i * 80}>
+                <article className="card flex h-full gap-4 p-6 sm:gap-5 sm:p-7 rounded-2xl border border-surface-200 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md hover:border-[#1E65AB]/40 group cursor-default">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary-200/80 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary-300">
+                    <Icon className="h-6 w-6 text-[#1E65AB] transition-colors group-hover:text-[#0C7AB5]" aria-hidden="true" />
                   </span>
                   <div className="min-w-0">
-                    <h3 className="text-xl">{title}</h3>
-                    <p className="mt-2 text-body">{body}</p>
+                    <h3 className="text-xl font-extrabold text-[#010211] transition-colors group-hover:text-[#1E65AB]">{title}</h3>
+                    <p className="mt-2 text-body leading-relaxed">{body}</p>
                   </div>
                 </article>
               </Reveal>
